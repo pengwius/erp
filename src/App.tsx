@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from './context/ThemeContext';
-import { Layout } from './components/Layout';
-import { Dashboard } from './pages/Dashboard';
-import { Invoices } from './pages/Invoices';
-import { AppearanceSettings, AdvancedSettings } from './pages/Settings';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext";
+import { Layout } from "./components/Layout";
+import { Dashboard } from "./pages/Dashboard";
+import { Invoices } from "./pages/Invoices";
+import { AppearanceSettings } from "./pages/settings/AppearanceSettings";
+import { AdvancedSettings } from "./pages/settings/AdvancedSettings";
 
 export default function App() {
   return (

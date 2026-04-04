@@ -1,39 +1,268 @@
-import { createContext, useContext, useEffect, useState } from "react";
-
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 type ThemeContextType = {
-  theme: string;
-  setTheme: (theme: string) => void;
-  themes: string[];
+  theme: "light" | "dark";
+  setTheme: (t: "light" | "dark") => void;
+  themes: ("light" | "dark")[];
+  primaryColor: string;
+  setPrimaryColor: (c: string) => void;
+  colors: string[];
 };
 
-const themes = [
-  'light', 'dark'
+const THEMES: ("light" | "dark")[] = ["light", "dark"];
+
+const PRESET_COLORS = [
+  "#BD34FE", // default purple
+  "#7C3AED", // indigo-ish
+  "#6366F1", // indigo-2
+  "#06B6D4", // cyan
+  "#10B981", // emerald/green
+  "#F97316", // orange
+  "#EF4444", // red
+  "#EC4899", // pink
 ];
+
+const DEFAULT_PRIMARY = PRESET_COLORS[0];
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: any = ({ children }: { children: any }) => {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('erp-theme') || 'corporate';
+function hexToRgb(hex: string | null): [number, number, number] | null {
+  if (!hex) return null;
+  const s = hex.trim().replace("#", "");
+  const full =
+    s.length === 3
+      ? s
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : s;
+  if (!/^[0-9a-f]{6}$/i.test(full)) return null;
+  return [
+    parseInt(full.slice(0, 2), 16),
+    parseInt(full.slice(2, 4), 16),
+    parseInt(full.slice(4, 6), 16),
+  ];
+}
+
+function clamp(v: number, a = 0, b = 255) {
+  return Math.max(a, Math.min(b, Math.round(v)));
+}
+
+function adjustBrightness(rgb: [number, number, number], factor: number) {
+  return [
+    clamp(rgb[0] * factor),
+    clamp(rgb[1] * factor),
+    clamp(rgb[2] * factor),
+  ] as [number, number, number];
+}
+
+function rgbToHex(r: number, g: number, b: number) {
+  const toHex = (n: number) =>
+    Math.max(0, Math.min(255, Math.round(n)))
+      .toString(16)
+      .padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+}
+
+function relativeLuminance([r, g, b]: [number, number, number]) {
+  const srgb = [r, g, b].map((v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+}
+
+function pickContrastColor(rgb: [number, number, number]) {
+  const L = relativeLuminance(rgb);
+  const contrastWithBlack = (L + 0.05) / 0.05;
+  const contrastWithWhite = 1.05 / (L + 0.05);
+  return contrastWithWhite >= contrastWithBlack ? "#FFFFFF" : "#000000";
+}
+
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    try {
+      const stored = localStorage.getItem("erp-theme");
+      return stored === "dark" ? "dark" : "light";
+    } catch {
+      return "light";
+    }
+  });
+
+  const [primaryColor, setPrimaryColor] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem("erp-primary");
+      return stored || DEFAULT_PRIMARY;
+    } catch {
+      return DEFAULT_PRIMARY;
+    }
   });
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('erp-theme', theme);
-  }, [theme]);
+    if (typeof document === "undefined") return;
+
+    const root = document.documentElement;
+    const body = document.body;
+
+    try {
+      root.setAttribute("data-theme", theme);
+      try {
+        localStorage.setItem("erp-theme", theme);
+      } catch {}
+    } catch {}
+
+    try {
+      const primary = primaryColor || DEFAULT_PRIMARY;
+      root.style.setProperty("--p", primary);
+      root.style.setProperty("--primary", primary);
+      if (body) {
+        body.style.setProperty("--p", primary);
+        body.style.setProperty("--primary", primary);
+      }
+
+      const rgb = hexToRgb(primary);
+      const rgbSpace = rgb ? `${rgb[0]} ${rgb[1]} ${rgb[2]}` : "";
+
+      if (rgb) {
+        root.style.setProperty("--p-rgb", rgbSpace);
+        root.style.setProperty("--primary-rgb", rgbSpace);
+        if (body) {
+          body.style.setProperty("--p-rgb", rgbSpace);
+          body.style.setProperty("--primary-rgb", rgbSpace);
+        }
+
+        const darker = adjustBrightness(rgb, 0.82);
+        const lighter = adjustBrightness(rgb, 1.12);
+        const darkerHex = rgbToHex(darker[0], darker[1], darker[2]);
+        const lighterHex = rgbToHex(lighter[0], lighter[1], lighter[2]);
+
+        root.style.setProperty("--pf", darkerHex);
+        root.style.setProperty("--primary-focus", darkerHex);
+        root.style.setProperty("--primary-hover", lighterHex);
+
+        root.style.setProperty(
+          "--pf-rgb",
+          `${darker[0]} ${darker[1]} ${darker[2]}`,
+        );
+        root.style.setProperty(
+          "--primary-focus-rgb",
+          `${darker[0]} ${darker[1]} ${darker[2]}`,
+        );
+        root.style.setProperty(
+          "--primary-hover-rgb",
+          `${lighter[0]} ${lighter[1]} ${lighter[2]}`,
+        );
+
+        const contentColor = pickContrastColor(rgb);
+        root.style.setProperty("--primary-content", contentColor);
+        root.style.setProperty("--pc", contentColor);
+        if (body) {
+          body.style.setProperty("--primary-content", contentColor);
+          body.style.setProperty("--pc", contentColor);
+        }
+
+        root.style.setProperty(
+          "--primary-border-rgba",
+          `rgba(${rgbSpace} / 0.3)`,
+        );
+        if (body)
+          body.style.setProperty(
+            "--primary-border-rgba",
+            `rgba(${rgbSpace} / 0.3)`,
+          );
+      }
+
+      try {
+        localStorage.setItem("erp-primary", primary);
+      } catch {}
+
+      try {
+        const pRgbForCss =
+          getComputedStyle(root).getPropertyValue("--p-rgb") ||
+          getComputedStyle(root).getPropertyValue("--primary-rgb") ||
+          rgbSpace ||
+          "";
+
+        const overrideCss = `
+:root, body {
+  --p: ${primary} !important;
+  --primary: ${primary} !important;
+  ${pRgbForCss ? `--p-rgb: ${pRgbForCss} !important; --primary-rgb: ${pRgbForCss} !important;` : ""}
+  --primary-content: ${getComputedStyle(root).getPropertyValue("--primary-content") || getComputedStyle(root).getPropertyValue("--pc") || "#FFFFFF"} !important;
+}
+
+/* Ensure common primary classes update live */
+.text-primary { color: var(--primary) !important; }
+.bg-primary { background-color: var(--primary) !important; color: var(--primary-content) !important; }
+.bg-primary\\/5 { background-color: color-mix(in srgb, var(--primary) 5%, transparent) !important; }
+.bg-primary\\/10 { background-color: color-mix(in srgb, var(--primary) 10%, transparent) !important; }
+.bg-primary\\/20 { background-color: color-mix(in srgb, var(--primary) 20%, transparent) !important; }
+.bg-primary\\/30 { background-color: color-mix(in srgb, var(--primary) 30%, transparent) !important; }
+
+.border-primary { border-color: var(--primary) !important; }
+.border-primary\\/10 { border-color: color-mix(in srgb, var(--primary) 10%, transparent) !important; }
+.border-primary\\/20 { border-color: color-mix(in srgb, var(--primary) 20%, transparent) !important; }
+.border-primary\\/30 { border-color: color-mix(in srgb, var(--primary) 30%, transparent) !important; }
+
+.btn-primary, .btn.btn-primary {
+  background-color: var(--primary) !important;
+  color: var(--primary-content) !important;
+  border-color: var(--primary) !important;
+}
+
+.focus\\:ring-primary:focus, .ring-primary {
+  --tw-ring-color: color-mix(in srgb, var(--primary) 40%, transparent) !important;
+}
+
+/* translucent helper areas (avatars, badges) */
+.avatar .bg-primary\\/10, .rounded.bg-primary\\/10 {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent) !important;
+  color: var(--primary) !important;
+}
+
+/* readable content on solid primary */
+.bg-primary, .btn-primary, .badge-primary {
+  color: var(--primary-content) !important;
+}
+
+/* fallback for explicit attribute-marked elements */
+*[data-primary-bg] { background-color: var(--primary) !important; color: var(--primary-content) !important; }
+`.trim();
+
+        let styleEl = document.getElementById(
+          "erp-dynamic-overrides",
+        ) as HTMLStyleElement | null;
+        if (!styleEl) {
+          styleEl = document.createElement("style");
+          styleEl.id = "erp-dynamic-overrides";
+          document.head.appendChild(styleEl);
+        }
+        styleEl.textContent = overrideCss;
+        document.documentElement.offsetHeight;
+      } catch {}
+    } catch {}
+  }, [theme, primaryColor]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, themes }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        setTheme,
+        themes: THEMES,
+        primaryColor,
+        setPrimaryColor,
+        colors: PRESET_COLORS,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
 };
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
+export const useTheme = (): ThemeContextType => {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error("useTheme must be used within a ThemeProvider");
+  return ctx;
 };
