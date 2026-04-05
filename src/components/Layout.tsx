@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Menu,
@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Search,
 } from "lucide-react";
+import { useOnboarding } from "../hooks/useOnboarding";
 
 export const Layout: any = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -18,6 +19,14 @@ export const Layout: any = () => {
   });
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { needsOnboarding } = useOnboarding();
+
+  useEffect(() => {
+    if (needsOnboarding === true) {
+      navigate("/onboarding");
+    }
+  }, [needsOnboarding, navigate]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -44,6 +53,11 @@ export const Layout: any = () => {
           name: "Appearance",
           path: "/settings/appearance",
           icon: <Palette className="w-4 h-4" />,
+        },
+        {
+          name: "Company",
+          path: "/settings/company",
+          icon: <FileText className="w-4 h-4" />,
         },
         {
           name: "Advanced",
@@ -86,7 +100,7 @@ export const Layout: any = () => {
                     <div
                       className={`flex items-center ${isSidebarOpen ? "gap-3" : ""}`}
                     >
-                      <div className="flex-shrink-0">{item.icon}</div>
+                      <div className="shrink-0">{item.icon}</div>
                       {isSidebarOpen && (
                         <span className="truncate whitespace-nowrap">
                           {item.name}
@@ -128,7 +142,7 @@ export const Layout: any = () => {
                               : undefined
                           }
                         >
-                          <div className="flex-shrink-0">{subItem.icon}</div>
+                          <div className="shrink-0">{subItem.icon}</div>
                           <span className="truncate text-sm">
                             {subItem.name}
                           </span>
@@ -158,7 +172,7 @@ export const Layout: any = () => {
                   }
                   title={!isSidebarOpen ? item.name : undefined}
                 >
-                  <div className="flex-shrink-0">{item.icon}</div>
+                  <div className="shrink-0">{item.icon}</div>
                   {isSidebarOpen && (
                     <span className="truncate whitespace-nowrap">
                       {item.name}

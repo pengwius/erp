@@ -75,3 +75,5 @@ export const AppearanceSettings = () => {
     </div>
   );
 };
+
+export { default as CompanySettings } from "./company/CompanySettings";
