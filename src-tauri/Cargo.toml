@@ -25,3 +25,5 @@ diesel = { version = "2.3.7", features = ["sqlite", "r2d2", "chrono", "returning
 diesel_migrations = { version = "2.3.1", features = ["sqlite"] }
 chrono = { version = "0.4.44", features = ["serde"] }
 libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
+invoice-gen = "0.0.5"
+rust_decimal = "1"
