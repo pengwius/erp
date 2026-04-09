@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import PrimaryButton from "../../../../components/PrimaryButton";
 import { Company } from "../../../../types/company";
+import { useTranslation } from "react-i18next";
 
 interface CompanyFormProps {
   company: Company | null;
@@ -19,6 +20,7 @@ export const CompanyForm = ({
   error,
   success,
 }: CompanyFormProps) => {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [nip, setNip] = useState("");
   const [street, setStreet] = useState("");
@@ -62,7 +64,7 @@ export const CompanyForm = ({
   if (!company) {
     return (
       <div className="text-sm text-muted-foreground">
-        Select a company to edit.
+        {t("company.edit_company")}
       </div>
     );
   }
@@ -74,7 +76,7 @@ export const CompanyForm = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label className="flex flex-col">
-          <span className="text-sm mb-1">Name</span>
+          <span className="text-sm mb-1">{t("company.name")}</span>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -83,7 +85,7 @@ export const CompanyForm = ({
         </label>
 
         <label className="flex flex-col">
-          <span className="text-sm mb-1">NIP</span>
+          <span className="text-sm mb-1">{t("company.nip")}</span>
           <Input value={nip} onChange={(e) => setNip(e.target.value)} />
         </label>
       </div>
@@ -91,17 +93,17 @@ export const CompanyForm = ({
       <div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <label className="flex flex-col">
-            <span className="text-sm mb-1">Street</span>
+            <span className="text-sm mb-1">{t("company.street")}</span>
             <Input value={street} onChange={(e) => setStreet(e.target.value)} />
           </label>
 
           <label className="flex flex-col">
-            <span className="text-sm mb-1">City</span>
+            <span className="text-sm mb-1">{t("company.city")}</span>
             <Input value={city} onChange={(e) => setCity(e.target.value)} />
           </label>
 
           <label className="flex flex-col">
-            <span className="text-sm mb-1">Postal code</span>
+            <span className="text-sm mb-1">{t("company.postal_code")}</span>
             <Input
               value={postalCode}
               onChange={(e) => setPostalCode(e.target.value)}
@@ -109,7 +111,7 @@ export const CompanyForm = ({
           </label>
 
           <label className="flex flex-col md:col-span-2 lg:col-span-1">
-            <span className="text-sm mb-1">Country</span>
+            <span className="text-sm mb-1">{t("company.country")}</span>
             <Input
               value={country}
               onChange={(e) => setCountry(e.target.value)}
@@ -123,12 +125,12 @@ export const CompanyForm = ({
           type="submit"
           disabled={saving || !name.trim()}
           loading={saving}
-          loadingText="Saving..."
+          loadingText={t("common.saving")}
           icon={<Check className="w-4 h-4" />}
           iconPosition="right"
           className="px-4 py-2"
         >
-          Save changes
+          {t("common.save")}
         </PrimaryButton>
       </div>
     </form>

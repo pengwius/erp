@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Check,
   ArrowRight,
@@ -9,7 +10,8 @@ import {
   Sparkles,
   Rocket,
   CheckCircle2,
-  Zap, Loader2,
+  Zap,
+  Loader2,
 } from "lucide-react";
 
 import SoftPrimaryButton from "../components/PrimaryButton";
@@ -19,6 +21,7 @@ import InputField from "../components/InputField";
 
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [step, setStep] = useState<number>(1);
   const [name, setName] = useState<string>("");
@@ -70,10 +73,30 @@ export const Onboarding: React.FC = () => {
   };
 
   const stepsList = [
-    { id: 1, title: "Welcome", desc: "Get started", icon: Sparkles },
-    { id: 2, title: "Company", desc: "Company details", icon: Building2 },
-    { id: 3, title: "KSeF", desc: "Integrations", icon: Zap },
-    { id: 4, title: "Done", desc: "Summary", icon: CheckCircle2 },
+    {
+      id: 1,
+      title: t("onboarding.step_welcome"),
+      desc: t("onboarding.step_get_started"),
+      icon: Sparkles,
+    },
+    {
+      id: 2,
+      title: t("onboarding.step_company"),
+      desc: t("onboarding.step_company_details"),
+      icon: Building2,
+    },
+    {
+      id: 3,
+      title: t("onboarding.step_ksef"),
+      desc: t("onboarding.step_integrations"),
+      icon: Zap,
+    },
+    {
+      id: 4,
+      title: t("onboarding.step_done"),
+      desc: t("onboarding.step_summary"),
+      icon: CheckCircle2,
+    },
   ];
 
   return (
@@ -89,10 +112,10 @@ export const Onboarding: React.FC = () => {
               <Rocket className="w-6 h-6" />
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-4">
-              Welcome to ERP
+              {t("onboarding.welcome_title")}
             </h1>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Let's set up your workspace. A few quick steps to get you ready.
+              {t("onboarding.setup_desc")}
             </p>
           </div>
 
@@ -172,11 +195,10 @@ export const Onboarding: React.FC = () => {
                   <Sparkles className="w-7 h-7" />
                 </div>
                 <h2 className="text-3xl font-extrabold tracking-tight">
-                  Get started
+                  {t("onboarding.get_started")}
                 </h2>
                 <p className="text-muted-foreground text-lg">
-                  We'll guide you through a short setup so you can start using
-                  the program right away.
+                  {t("onboarding.get_started_desc")}
                 </p>
                 <div className="pt-8 flex flex-col sm:flex-row gap-4">
                   <SoftPrimaryButton
@@ -184,7 +206,7 @@ export const Onboarding: React.FC = () => {
                     icon={<ArrowRight className="w-4 h-4" />}
                     iconPosition="right"
                   >
-                    Start setup
+                    {t("onboarding.start_setup")}
                   </SoftPrimaryButton>
                 </div>
               </div>
@@ -194,17 +216,16 @@ export const Onboarding: React.FC = () => {
               <div className="animate-fade-in space-y-6 w-full">
                 <div>
                   <h2 className="text-3xl font-extrabold tracking-tight mb-2">
-                    Company details
+                    {t("onboarding.company_details")}
                   </h2>
                   <p className="text-muted-foreground">
-                    Enter your company information. These details will appear on
-                    invoices.
+                    {t("onboarding.company_details_desc")}
                   </p>
                 </div>
 
                 <div className="space-y-4 pt-4">
                   <InputField
-                    label="Company name"
+                    label={t("company.name")}
                     value={name}
                     onChange={setName}
                     placeholder="e.g. ACME Ltd."
@@ -212,7 +233,7 @@ export const Onboarding: React.FC = () => {
                   />
 
                   <InputField
-                    label="Tax ID"
+                    label={t("onboarding.tax_id")}
                     value={nip}
                     onChange={setNip}
                     placeholder="e.g. 1234567890"
@@ -220,25 +241,25 @@ export const Onboarding: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <InputField
-                      label="Street"
+                      label={t("company.street")}
                       value={street}
                       onChange={setStreet}
                       placeholder="e.g. Flower St 1/2"
                     />
                     <InputField
-                      label="City"
+                      label={t("company.city")}
                       value={city}
                       onChange={setCity}
                       placeholder="Warsaw"
                     />
                     <InputField
-                      label="Postal code"
+                      label={t("company.postal_code")}
                       value={postalCode}
                       onChange={setPostalCode}
                       placeholder="00-000"
                     />
                     <InputField
-                      label="Country"
+                      label={t("company.country")}
                       value={country}
                       onChange={setCountry}
                       placeholder="Poland"
@@ -248,7 +269,7 @@ export const Onboarding: React.FC = () => {
 
                 <div className="pt-8 flex items-center justify-between">
                   <GhostButton onClick={back}>
-                    <ArrowLeft className="w-4 h-4" /> Back
+                    <ArrowLeft className="w-4 h-4" /> {t("common.back")}
                   </GhostButton>
                   <SoftPrimaryButton
                     onClick={next}
@@ -256,7 +277,7 @@ export const Onboarding: React.FC = () => {
                     icon={<ArrowRight className="w-4 h-4" />}
                     iconPosition="right"
                   >
-                    Next
+                    {t("common.next")}
                   </SoftPrimaryButton>
                 </div>
               </div>
@@ -266,11 +287,10 @@ export const Onboarding: React.FC = () => {
               <div className="animate-fade-in space-y-6">
                 <div>
                   <h2 className="text-3xl font-extrabold tracking-tight mb-2">
-                    KSeF Integration
+                    {t("onboarding.ksef_integration")}
                   </h2>
                   <p className="text-muted-foreground">
-                    The national e-invoice system can streamline invoicing. You
-                    can connect now or set it up later.
+                    {t("onboarding.ksef_integration_desc")}
                   </p>
                 </div>
 
@@ -279,24 +299,23 @@ export const Onboarding: React.FC = () => {
                     <Zap className="w-6 h-6" />
                   </div>
                   <h3 className="font-semibold text-lg">
-                    KSeF module coming soon
+                    {t("onboarding.ksef_coming_soon")}
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-sm">
-                    Full KSeF support will arrive in a future update. Invoices
-                    work normally for now.
+                    {t("onboarding.ksef_coming_soon_desc")}
                   </p>
                 </div>
 
                 <div className="pt-8 flex items-center justify-between">
                   <GhostButton onClick={back}>
-                    <ArrowLeft className="w-4 h-4" /> Back
+                    <ArrowLeft className="w-4 h-4" /> {t("common.back")}
                   </GhostButton>
                   <SoftPrimaryButton
                     onClick={next}
                     icon={<ArrowRight className="w-4 h-4" />}
                     iconPosition="right"
                   >
-                    Continue
+                    {t("onboarding.continue")}
                   </SoftPrimaryButton>
                 </div>
               </div>
@@ -306,48 +325,58 @@ export const Onboarding: React.FC = () => {
               <div className="animate-fade-in space-y-6">
                 <div>
                   <h2 className="text-3xl font-extrabold tracking-tight mb-2">
-                    Summary
+                    {t("onboarding.summary")}
                   </h2>
                   <p className="text-muted-foreground">
-                    Review the details below before saving.
+                    {t("onboarding.summary_desc")}
                   </p>
                 </div>
 
                 <div className="bg-muted/40 rounded-2xl p-6 border border-border space-y-4">
                   <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
-                    <div className="text-muted-foreground text-sm">Name</div>
+                    <div className="text-muted-foreground text-sm">
+                      {t("company.name")}
+                    </div>
                     <div className="col-span-2 font-medium text-right">
                       {name || "—"}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
-                    <div className="text-muted-foreground text-sm">Tax ID</div>
+                    <div className="text-muted-foreground text-sm">
+                      {t("onboarding.tax_id")}
+                    </div>
                     <div className="col-span-2 font-medium text-right">
                       {nip || "—"}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
-                    <div className="text-muted-foreground text-sm">Street</div>
+                    <div className="text-muted-foreground text-sm">
+                      {t("company.street")}
+                    </div>
                     <div className="col-span-2 font-medium text-right">
                       {street || "—"}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
-                    <div className="text-muted-foreground text-sm">City</div>
+                    <div className="text-muted-foreground text-sm">
+                      {t("company.city")}
+                    </div>
                     <div className="col-span-2 font-medium text-right">
                       {city || "—"}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
                     <div className="text-muted-foreground text-sm">
-                      Postal code
+                      {t("company.postal_code")}
                     </div>
                     <div className="col-span-2 font-medium text-right">
                       {postalCode || "—"}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="text-muted-foreground text-sm">Country</div>
+                    <div className="text-muted-foreground text-sm">
+                      {t("company.country")}
+                    </div>
                     <div className="col-span-2 font-medium text-right">
                       {country || "—"}
                     </div>
@@ -362,18 +391,16 @@ export const Onboarding: React.FC = () => {
 
                 <div className="pt-6 flex items-center justify-between">
                   <GhostButton onClick={back} disabled={loading}>
-                    <ArrowLeft className="w-4 h-4" /> Back
+                    <ArrowLeft className="w-4 h-4" /> {t("common.back")}
                   </GhostButton>
                   {loading ? (
                     <SoftPrimaryButton
                       onClick={submitCompany}
                       disabled={loading}
-                      icon={
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      }
+                      icon={<Loader2 className="h-4 w-4 animate-spin" />}
                       iconPosition="left"
                     >
-                      Creating...
+                      {t("common.creating")}
                     </SoftPrimaryButton>
                   ) : (
                     <SoftPrimaryButton
@@ -382,7 +409,7 @@ export const Onboarding: React.FC = () => {
                       icon={<Check className="w-4 h-4" />}
                       iconPosition="right"
                     >
-                      Finish and continue
+                      {t("onboarding.finish_and_continue")}
                     </SoftPrimaryButton>
                   )}
                 </div>

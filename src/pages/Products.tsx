@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "react-i18next";
 import InputField from "../components/InputField";
 import SoftPrimaryButton, { GhostButton } from "../components/PrimaryButton";
 
@@ -28,6 +29,7 @@ type Product = {
 };
 
 export default function Products() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -119,7 +121,7 @@ export default function Products() {
   async function handleSubmit() {
     setError(null);
     if (!name.trim()) {
-      setError("Product name is required");
+      setError(t("products.name_required"));
       return;
     }
     setSubmitting(true);
@@ -181,7 +183,7 @@ export default function Products() {
   }
 
   async function handleDelete(productId: number) {
-    if (!confirm("Delete this product? This action cannot be undone.")) return;
+    if (!confirm(t("products.delete_confirm"))) return;
     try {
       await invoke("cmd_delete_product", { id: productId });
       setRefreshToggle((t) => !t);
@@ -194,10 +196,10 @@ export default function Products() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Products</h1>
+        <h1 className="text-2xl font-semibold">{t("products.title")}</h1>
         <div className="flex items-center gap-3">
           <SoftPrimaryButton onClick={openCreateForm}>
-            New Product
+            {t("products.new_product")}
           </SoftPrimaryButton>
         </div>
       </div>
@@ -208,57 +210,59 @@ export default function Products() {
         <Card className="p-4 bg-muted/50 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <InputField
-              label="SKU"
+              label={t("products.sku")}
               value={sku}
               onChange={setSku}
               inputClassName="bg-base-100"
-              info="Stock Keeping Unit (SKU) — optional identifier used to track items."
+              info={t("products.sku_tooltip")}
             />
             <InputField
-              label="Name"
+              label={t("products.name")}
               value={name}
               onChange={setName}
               required
               inputClassName="bg-base-100"
             />
             <InputField
-              label="Unit"
+              label={t("products.unit")}
               value={unit}
               onChange={setUnit}
               inputClassName="bg-base-100"
             />
             <InputField
-              label="VAT %"
+              label={t("products.vat_rate")}
               value={vatRate}
               onChange={setVatRate}
               inputClassName="bg-base-100"
             />
             <InputField
-              label="Description"
+              label={t("products.description")}
               value={description}
               onChange={setDescription}
               inputClassName="bg-base-100"
             />
             <div>
               <label className="label">
-                <span className="label-text">Initial price (optional)</span>
+                <span className="label-text">
+                  {t("products.initial_price_optional")}
+                </span>
               </label>
               <div className="grid grid-cols-3 gap-2">
                 <InputField
-                  label="Amount"
+                  label={t("products.amount")}
                   value={priceAmount}
                   onChange={setPriceAmount}
                   inputClassName="bg-base-100"
                 />
                 <InputField
-                  label="Currency"
+                  label={t("products.currency")}
                   value={priceCurrency}
                   onChange={setPriceCurrency}
                   inputClassName="bg-base-100"
                 />
                 <InputField
                   type="date"
-                  label="Valid from"
+                  label={t("products.valid_from")}
                   value={priceValidFrom}
                   onChange={setPriceValidFrom}
                   inputClassName="bg-base-100"
@@ -274,14 +278,14 @@ export default function Products() {
                 resetFormFields();
               }}
             >
-              Cancel
+              {t("common.cancel")}
             </GhostButton>
             <SoftPrimaryButton onClick={handleSubmit} disabled={submitting}>
               {submitting
-                ? "Saving..."
+                ? t("common.saving")
                 : editingProductId
-                  ? "Save changes"
-                  : "Create product"}
+                  ? t("products.save_changes")
+                  : t("products.create_product")}
             </SoftPrimaryButton>
           </div>
         </Card>
@@ -292,26 +296,26 @@ export default function Products() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead>VAT</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("products.id")}</TableHead>
+                <TableHead>{t("products.sku")}</TableHead>
+                <TableHead>{t("products.name")}</TableHead>
+                <TableHead>{t("products.unit")}</TableHead>
+                <TableHead>{t("products.vat_rate")}</TableHead>
+                <TableHead>{t("products.created")}</TableHead>
+                <TableHead>{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-6">
-                    Loading...
+                    {t("common.loading")}
                   </TableCell>
                 </TableRow>
               ) : products.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-6">
-                    No products yet.
+                    {t("products.no_products")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -330,14 +334,14 @@ export default function Products() {
                           size="sm"
                           onClick={() => handleEdit(p.id)}
                         >
-                          Edit
+                          {t("common.edit")}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleDelete(p.id)}
                         >
-                          Delete
+                          {t("common.delete")}
                         </Button>
                       </div>
                     </TableCell>

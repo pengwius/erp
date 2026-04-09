@@ -50,7 +50,10 @@ type ProductPayload = {
   country_of_origin?: string | null;
 };
 
+import { useTranslation } from "react-i18next";
+
 export default function ProductForm() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const params = useParams<{ id?: string }>();
   const editingId = params.id ? parseInt(params.id, 10) : null;
@@ -320,19 +323,20 @@ export default function ProductForm() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {editingId ? "Edit product" : "New product"}
+            {editingId ? t("products.edit_product") : t("products.new_product")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Fill in the details below to configure your product. Required fields
-            are marked.
+            {t("products.form_description")}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <GhostButton onClick={() => navigate(-1)}>Cancel</GhostButton>
+          <GhostButton onClick={() => navigate(-1)}>
+            {t("common.cancel")}
+          </GhostButton>
           <SoftPrimaryButton onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {saving ? "Saving..." : "Save Product"}
+            {saving ? t("common.saving") : t("products.save_product")}
           </SoftPrimaryButton>
         </div>
       </div>
@@ -340,7 +344,7 @@ export default function ProductForm() {
       {loading && (
         <div className="bg-blue-500/15 text-blue-500 p-3 rounded-md flex items-center gap-2 text-sm shadow-sm">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading product details...</span>
+          <span>{t("common.loading")}</span>
         </div>
       )}
 
@@ -360,36 +364,48 @@ export default function ProductForm() {
           <Card>
             <CardContent className="p-6">
               <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-                <CardTitle className="text-lg">Basic Information</CardTitle>
+                <CardTitle className="text-lg">
+                  {t("products.basic_information")}
+                </CardTitle>
               </CardHeader>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <InputField
-                    label="Name"
+                    label={t("products.name")}
                     value={name}
                     onChange={setName}
                     required
                   />
                 </div>
                 <InputField
-                  label="Category / Group"
+                  label={t("products.category_group")}
                   value={category}
                   onChange={setCategory}
+                  info={t("products.category_tooltip")}
                 />
                 <InputField
-                  label="Brand / Manufacturer"
+                  label={t("products.brand_manufacturer")}
                   value={brand}
                   onChange={setBrand}
                 />
-                <InputField label="Model" value={model} onChange={setModel} />
                 <InputField
-                  label="SKU (internal index)"
+                  label={t("products.model")}
+                  value={model}
+                  onChange={setModel}
+                />
+                <InputField
+                  label={t("products.sku_internal")}
                   value={sku}
                   onChange={setSku}
-                  info="Unique internal identifier"
+                  info={t("products.sku_tooltip")}
                 />
-                <InputField label="EAN / GTIN" value={ean} onChange={setEan} />
+                <InputField
+                  label={t("products.ean_gtin")}
+                  value={ean}
+                  onChange={setEan}
+                  info={t("products.ean_tooltip")}
+                />
               </div>
             </CardContent>
           </Card>
@@ -398,20 +414,28 @@ export default function ProductForm() {
           <Card>
             <CardContent className="p-6">
               <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-                <CardTitle className="text-lg">Descriptions & Media</CardTitle>
+                <CardTitle className="text-lg">
+                  {t("products.descriptions_media")}
+                </CardTitle>
               </CardHeader>
 
               <div className="space-y-4">
                 <InputField
-                  label="Short Description"
+                  label={t("products.short_description")}
                   value={shortDescription}
                   onChange={setShortDescription}
                 />
 
                 <label className="flex flex-col gap-2 w-full">
-                  <div className="label">
+                  <div className="label flex items-center gap-2">
                     <span className="label-text font-medium text-muted-foreground">
-                      Long Description (Markdown)
+                      {t("products.long_description")}
+                    </span>
+                    <span
+                      className="text-[10px] text-muted-foreground rounded-full w-4 h-4 flex items-center justify-center bg-muted border border-border cursor-help"
+                      title={t("products.long_desc_tooltip")}
+                    >
+                      ?
                     </span>
                   </div>
                   <Textarea
@@ -422,9 +446,15 @@ export default function ProductForm() {
                 </label>
 
                 <label className="flex flex-col gap-2 w-full">
-                  <div className="label">
+                  <div className="label flex items-center gap-2">
                     <span className="label-text font-medium text-muted-foreground">
-                      Images (choose files, multiple)
+                      {t("products.images")}
+                    </span>
+                    <span
+                      className="text-[10px] text-muted-foreground rounded-full w-4 h-4 flex items-center justify-center bg-muted border border-border cursor-help"
+                      title={t("products.images_tooltip")}
+                    >
+                      ?
                     </span>
                   </div>
                   <Input
@@ -468,21 +498,23 @@ export default function ProductForm() {
           <Card>
             <CardContent className="p-6">
               <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-                <CardTitle className="text-lg">Pricing</CardTitle>
+                <CardTitle className="text-lg">
+                  {t("products.pricing")}
+                </CardTitle>
               </CardHeader>
 
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <InputField
-                      label="Sell Price (Net)"
+                      label={t("products.sell_price_net")}
                       value={sellPriceNet}
                       onChange={setSellPriceNet}
                     />
                   </div>
                   <div className="w-24">
                     <InputField
-                      label="Currency"
+                      label={t("products.currency")}
                       value={currency}
                       onChange={setCurrency}
                     />
@@ -490,21 +522,23 @@ export default function ProductForm() {
                 </div>
 
                 <InputField
-                  label="Purchase Price (Net)"
+                  label={t("products.purchase_price_net")}
                   value={purchasePriceNet}
                   onChange={setPurchasePriceNet}
                 />
 
                 <div className="p-4 bg-muted/50 rounded-lg space-y-2 mt-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Margin:</span>
+                    <span className="text-muted-foreground">
+                      {t("products.margin")}
+                    </span>
                     <span className="font-semibold text-green-500">
                       {marginPercent}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      Sell Price (Gross):
+                      {t("products.sell_price_gross")}
                     </span>
                     <span className="font-medium">
                       {sellPriceGross} {currency}
@@ -519,44 +553,50 @@ export default function ProductForm() {
           <Card>
             <CardContent className="p-6">
               <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-                <CardTitle className="text-lg">Inventory & Logistics</CardTitle>
+                <CardTitle className="text-lg">
+                  {t("products.inventory_logistics")}
+                </CardTitle>
               </CardHeader>
 
               <div className="grid grid-cols-2 gap-4">
-                <InputField label="Unit" value={unit} onChange={setUnit} />
+                <InputField
+                  label={t("products.unit")}
+                  value={unit}
+                  onChange={setUnit}
+                />
               </div>
 
               <div className="w-full h-px bg-border my-4 relative">
                 <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-background px-2 text-sm text-muted-foreground">
-                  Dimensions & Weight
+                  {t("products.dimensions_weight")}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <InputField
-                  label="Weight (Net)"
+                  label={t("products.weight_net")}
                   value={weightNet}
                   onChange={setWeightNet}
                 />
                 <InputField
-                  label="Weight (Gross)"
+                  label={t("products.weight_gross")}
                   value={weightGross}
                   onChange={setWeightGross}
                 />
               </div>
               <div className="grid grid-cols-3 gap-2 mt-4">
                 <InputField
-                  label="L (cm)"
+                  label={t("products.length_cm")}
                   value={lengthCm}
                   onChange={setLengthCm}
                 />
                 <InputField
-                  label="W (cm)"
+                  label={t("products.width_cm")}
                   value={widthCm}
                   onChange={setWidthCm}
                 />
                 <InputField
-                  label="H (cm)"
+                  label={t("products.height_cm")}
                   value={heightCm}
                   onChange={setHeightCm}
                 />
@@ -568,32 +608,42 @@ export default function ProductForm() {
           <Card>
             <CardContent className="p-6">
               <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-                <CardTitle className="text-lg">Tax & Accounting</CardTitle>
+                <CardTitle className="text-lg">
+                  {t("products.tax_accounting")}
+                </CardTitle>
               </CardHeader>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <InputField
-                    label="VAT Rate (%)"
+                    label={t("products.vat_rate_pct")}
                     value={vatRate}
                     onChange={setVatRate}
                   />
                 </div>
                 <InputField
-                  label="CN Code"
+                  label={t("products.cn_code")}
                   value={cnCode}
                   onChange={setCnCode}
+                  info={t("products.cn_code_tooltip")}
                 />
-                <InputField label="PKWiU" value={pkwiu} onChange={setPkwiu} />
                 <InputField
-                  label="GTU Code"
+                  label={t("products.pkwiu")}
+                  value={pkwiu}
+                  onChange={setPkwiu}
+                  info={t("products.pkwiu_tooltip")}
+                />
+                <InputField
+                  label={t("products.gtu_code")}
                   value={gtuCode}
                   onChange={setGtuCode}
+                  info={t("products.gtu_code_tooltip")}
                 />
                 <InputField
-                  label="KSeF Proc."
+                  label={t("products.ksef_proc")}
                   value={ksefProcedure}
                   onChange={setKsefProcedure}
+                  info={t("products.ksef_proc_tooltip")}
                 />
               </div>
             </CardContent>
@@ -603,7 +653,7 @@ export default function ProductForm() {
           <Card>
             <CardContent className="p-6">
               <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-                <CardTitle className="text-lg">Advanced</CardTitle>
+                <CardTitle className="text-lg">{t("nav.advanced")}</CardTitle>
               </CardHeader>
 
               <div className="space-y-4">
@@ -615,8 +665,14 @@ export default function ProductForm() {
                       checked={isService}
                       onChange={(e) => setIsService(e.target.checked)}
                     />
-                    <span className="label-text">
-                      Product is a service (no stock)
+                    <span className="label-text flex items-center gap-2">
+                      {t("products.is_service")}
+                      <span
+                        className="text-[10px] text-muted-foreground rounded-full w-4 h-4 flex items-center justify-center bg-muted border border-border cursor-help"
+                        title={t("products.is_service_tooltip")}
+                      >
+                        ?
+                      </span>
                     </span>
                   </label>
                 </div>
@@ -629,23 +685,26 @@ export default function ProductForm() {
                       checked={isActive}
                       onChange={(e) => setIsActive(e.target.checked)}
                     />
-                    <span className="label-text">Active / Visible</span>
+                    <span className="label-text">
+                      {t("products.is_active")}
+                    </span>
                   </label>
                 </div>
 
                 <InputField
                   type="date"
-                  label="Expiry Date"
+                  label={t("products.expiry_date")}
                   value={expiryDate ?? ""}
                   onChange={(v) => setExpiryDate(v || null)}
                 />
                 <InputField
-                  label="Lot / Batch Number"
+                  label={t("products.lot_number")}
                   value={lotNumber}
                   onChange={setLotNumber}
+                  info={t("products.lot_number_tooltip")}
                 />
                 <InputField
-                  label="Country of Origin"
+                  label={t("products.country_of_origin")}
                   value={countryOfOrigin}
                   onChange={setCountryOfOrigin}
                 />
@@ -653,7 +712,7 @@ export default function ProductForm() {
                 <label className="flex flex-col gap-2 w-full">
                   <div className="label">
                     <span className="label-text font-medium text-muted-foreground">
-                      Custom Attributes (JSON)
+                      {t("products.custom_attributes")}
                     </span>
                   </div>
                   <Textarea
@@ -670,10 +729,12 @@ export default function ProductForm() {
 
       {/* Bottom Actions */}
       <div className="flex justify-end gap-3 pt-6 border-t border-border mt-8 mb-4">
-        <GhostButton onClick={() => navigate(-1)}>Cancel</GhostButton>
+        <GhostButton onClick={() => navigate(-1)}>
+          {t("common.cancel")}
+        </GhostButton>
         <SoftPrimaryButton onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {saving ? "Saving..." : "Save Product"}
+          {saving ? t("common.saving") : t("products.save_product")}
         </SoftPrimaryButton>
       </div>
     </div>

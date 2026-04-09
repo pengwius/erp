@@ -1,4 +1,5 @@
 import { Company } from "../../../../types/company";
+import { useTranslation } from "react-i18next";
 
 interface CompanyListProps {
   companies: Company[];
@@ -13,19 +14,23 @@ export const CompanyList = ({
   selectedId,
   onSelect,
 }: CompanyListProps) => {
+  const { t } = useTranslation();
+
   return (
     <div className="col-span-1 bg-background p-4 rounded-2xl border border-border">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold">Companies</h3>
+        <h3 className="font-semibold">{t("nav.company")}</h3>
       </div>
 
       {loading && (
-        <div className="text-sm text-muted-foreground">Loading…</div>
+        <div className="text-sm text-muted-foreground">
+          {t("common.loading")}
+        </div>
       )}
 
       {!loading && companies.length === 0 && (
         <div className="text-sm text-muted-foreground">
-          No companies found.
+          {t("company.no_companies")}
         </div>
       )}
 

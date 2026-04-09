@@ -38,6 +38,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
+import { useTranslation } from "react-i18next";
 
 import { Avatar, AvatarFallback } from "./ui/avatar";
 
@@ -52,36 +53,36 @@ import {
 
 const menuItems = [
   {
-    name: "Dashboard",
+    name: "nav.dashboard",
     path: "/",
     icon: LayoutDashboard,
   },
   {
-    name: "Invoices",
+    name: "nav.invoices",
     path: "/invoices",
     icon: FileText,
   },
   {
-    name: "Products",
+    name: "nav.products",
     path: "/products",
     icon: ScanBarcode,
   },
   {
-    name: "Settings",
+    name: "nav.settings",
     icon: Settings,
     subItems: [
       {
-        name: "Appearance",
+        name: "nav.appearance",
         path: "/settings/appearance",
         icon: Palette,
       },
       {
-        name: "Company",
+        name: "nav.company",
         path: "/settings/company",
         icon: FileText,
       },
       {
-        name: "Advanced",
+        name: "nav.advanced",
         path: "/settings/advanced",
         icon: Wrench,
       },
@@ -90,6 +91,7 @@ const menuItems = [
 ];
 
 export const Layout = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { needsOnboarding } = useOnboarding();
@@ -116,7 +118,7 @@ export const Layout = () => {
 
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Application</SidebarGroupLabel>
+            <SidebarGroupLabel>{t("common.application")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems.map((item) =>
@@ -129,9 +131,9 @@ export const Layout = () => {
                       <SidebarMenuItem>
                         <CollapsibleTrigger
                           render={
-                            <SidebarMenuButton tooltip={item.name}>
+                            <SidebarMenuButton tooltip={t(item.name)}>
                               <item.icon className="h-4 w-4" />
-                              <span>{item.name}</span>
+                              <span>{t(item.name)}</span>
                               <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[open]/collapsible:rotate-90" />
                             </SidebarMenuButton>
                           }
@@ -145,7 +147,7 @@ export const Layout = () => {
                                   render={
                                     <NavLink to={subItem.path}>
                                       <subItem.icon className="h-4 w-4" />
-                                      <span>{subItem.name}</span>
+                                      <span>{t(subItem.name)}</span>
                                     </NavLink>
                                   }
                                 />
@@ -158,12 +160,12 @@ export const Layout = () => {
                   ) : (
                     <SidebarMenuItem key={item.name}>
                       <SidebarMenuButton
-                        tooltip={item.name}
+                        tooltip={t(item.name)}
                         isActive={location.pathname === item.path}
                         render={
                           <NavLink to={item.path}>
                             <item.icon className="h-4 w-4" />
-                            <span>{item.name}</span>
+                            <span>{t(item.name)}</span>
                           </NavLink>
                         }
                       />
@@ -192,7 +194,9 @@ export const Layout = () => {
                       </Avatar>
                       <div className="grid flex-1 text-left text-sm leading-tight">
                         <span className="truncate font-semibold">John Doe</span>
-                        <span className="truncate text-xs">Administrator</span>
+                        <span className="truncate text-xs">
+                          {t("common.administrator")}
+                        </span>
                       </div>
                     </SidebarMenuButton>
                   }
@@ -212,19 +216,21 @@ export const Layout = () => {
                       </Avatar>
                       <div className="grid flex-1 text-left text-sm leading-tight">
                         <span className="truncate font-semibold">John Doe</span>
-                        <span className="truncate text-xs">Administrator</span>
+                        <span className="truncate text-xs">
+                          {t("common.administrator")}
+                        </span>
                       </div>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <User className="mr-2 h-4 w-4" />
-                    Account
+                    {t("common.account")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <LogOut className="mr-2 h-4 w-4" />
-                    Log out
+                    {t("common.log_out")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -242,12 +248,12 @@ export const Layout = () => {
                 className="hover:text-foreground cursor-pointer transition-colors"
                 onClick={() => navigate("/")}
               >
-                Home
+                {t("common.home")}
               </span>
               <span className="mx-2">/</span>
               <span className="text-foreground font-medium capitalize">
                 {location.pathname.split("/").filter(Boolean).pop() ||
-                  "Dashboard"}
+                  t("nav.dashboard")}
               </span>
             </div>
           </div>
@@ -255,7 +261,7 @@ export const Layout = () => {
             <div className="relative hidden md:block">
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder={t("common.search")}
                 className="pl-9 pr-4 py-1.5 w-64 bg-muted/50 border border-transparent focus:border-input focus:bg-background rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/80" />

@@ -4,8 +4,10 @@ import { useCompanies } from "../../../hooks/useCompanies";
 import { CompanyList } from "./components/CompanyList";
 import { CompanyForm } from "./components/CompanyForm";
 import { Company } from "../../../types/company";
+import { useTranslation } from "react-i18next";
 
 export const CompanySettings = () => {
+  const { t } = useTranslation();
   const {
     companies,
     loading,
@@ -36,10 +38,7 @@ export const CompanySettings = () => {
 
   return (
     <div className="animate-fade-in w-full max-w-6xl mx-auto py-4">
-      <SettingsPageHeader
-        title="Company"
-        description="Manage your company information."
-      />
+      <SettingsPageHeader title={t("company.title")} description="" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <CompanyList
@@ -53,7 +52,9 @@ export const CompanySettings = () => {
           <div>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold">Edit company</h2>
+                <h2 className="text-lg font-semibold">
+                  {t("company.edit_company")}
+                </h2>
               </div>
             </div>
 

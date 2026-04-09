@@ -1,8 +1,16 @@
 import { Card } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "react-i18next";
 import InputField from "../components/InputField";
 import SoftPrimaryButton, { GhostButton } from "../components/PrimaryButton";
 
@@ -27,6 +35,7 @@ type Company = {
 };
 
 export const Invoices: React.FC = () => {
+  const { t } = useTranslation();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -88,11 +97,11 @@ export const Invoices: React.FC = () => {
   async function handleCreateInvoice() {
     setError(null);
     if (!issuerCompanyId) {
-      setError("Choose issuer company");
+      setError(t("invoices.choose_issuer"));
       return;
     }
     if (!invoiceNumber.trim()) {
-      setError("Invoice number is required");
+      setError(t("invoices.invoice_number_required"));
       return;
     }
 
@@ -195,11 +204,13 @@ export const Invoices: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Invoices</h1>
+        <h1 className="text-2xl font-semibold">{t("invoices.title")}</h1>
         <div className="flex items-center gap-3">
-          <GhostButton onClick={() => loadInvoices()}>Refresh</GhostButton>
+          <GhostButton onClick={() => loadInvoices()}>
+            {t("invoices.refresh")}
+          </GhostButton>
           <SoftPrimaryButton onClick={() => setShowCreate(true)}>
-            New Invoice
+            {t("invoices.new_invoice")}
           </SoftPrimaryButton>
         </div>
       </div>
@@ -217,13 +228,16 @@ export const Invoices: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="label">
-                <span className="label-text">Issuer company</span>
+                <span className="label-text">
+                  {t("invoices.issuer_company")}
+                </span>
               </label>
-              <select className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              <select
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={issuerCompanyId ?? ""}
                 onChange={(e) => setIssuerCompanyId(Number(e.target.value))}
               >
-                <option value="">Select issuer</option>
+                <option value="">{t("invoices.select_issuer")}</option>
                 {companies.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -233,7 +247,7 @@ export const Invoices: React.FC = () => {
             </div>
 
             <InputField
-              label="Invoice number"
+              label={t("invoices.invoice_number")}
               value={invoiceNumber}
               onChange={setInvoiceNumber}
               placeholder="FV/2026/0001"
@@ -241,80 +255,80 @@ export const Invoices: React.FC = () => {
             />
 
             <InputField
-              label="Issue date"
+              label={t("invoices.issue_date")}
               value={issueDate}
               onChange={setIssueDate}
               placeholder="YYYY-MM-DD"
             />
             <InputField
-              label="Currency"
+              label={t("invoices.currency")}
               value={currency}
               onChange={setCurrency}
             />
 
             <InputField
-              label="Seller name"
+              label={t("invoices.seller_name")}
               value={sellerName}
               onChange={setSellerName}
             />
             <InputField
-              label="Seller NIP"
+              label={t("invoices.seller_nip")}
               value={sellerNip}
               onChange={setSellerNip}
             />
             <InputField
-              label="Seller street"
+              label={t("invoices.seller_street")}
               value={sellerStreet}
               onChange={setSellerStreet}
             />
             <InputField
-              label="Seller building number"
+              label={t("invoices.seller_building_number")}
               value={sellerBuildingNumber}
               onChange={setSellerBuildingNumber}
             />
             <InputField
-              label="Seller city"
+              label={t("invoices.seller_city")}
               value={sellerCity}
               onChange={setSellerCity}
             />
             <InputField
-              label="Seller postal code"
+              label={t("invoices.seller_postal_code")}
               value={sellerPostalCode}
               onChange={setSellerPostalCode}
             />
 
             <InputField
-              label="Buyer name"
+              label={t("invoices.buyer_name")}
               value={buyerName}
               onChange={setBuyerName}
             />
             <InputField
-              label="Buyer NIP"
+              label={t("invoices.buyer_nip")}
               value={buyerNip}
               onChange={setBuyerNip}
             />
           </div>
 
           <div className="pt-4">
-            <h3 className="font-medium">Line (single, add more later)</h3>
+            <h3 className="font-medium">{t("invoices.line_title")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-2 pt-2">
               <InputField
-                label="Name"
+                label={t("invoices.line_name")}
                 value={lineName}
                 onChange={setLineName}
               />
               <InputField
-                label="Quantity"
+                label={t("invoices.line_quantity")}
                 value={lineQuantity}
                 onChange={setLineQuantity}
               />
               <InputField
-                label="Net price"
+                label={t("invoices.line_net_price")}
                 value={lineNetPrice}
                 onChange={setLineNetPrice}
               />
               <InputField
-                label="Tax rate"
+                label={t("invoices.line_tax_rate")}
                 value={lineTaxRate}
                 onChange={setLineTaxRate}
               />
@@ -328,14 +342,16 @@ export const Invoices: React.FC = () => {
                 resetForm();
               }}
             >
-              Cancel
+              {t("common.cancel")}
             </GhostButton>
             <SoftPrimaryButton
               onClick={handleCreateInvoice}
               disabled={submitting}
               iconPosition="right"
             >
-              {submitting ? "Creating..." : "Create invoice"}
+              {submitting
+                ? t("invoices.creating")
+                : t("invoices.create_invoice")}
             </SoftPrimaryButton>
           </div>
         </Card>
@@ -346,26 +362,26 @@ export const Invoices: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Number</TableHead>
-                <TableHead>Issue date</TableHead>
-                <TableHead>Seller</TableHead>
-                <TableHead>Buyer</TableHead>
-                <TableHead>Gross</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("invoices.id")}</TableHead>
+                <TableHead>{t("invoices.number")}</TableHead>
+                <TableHead>{t("invoices.issue_date")}</TableHead>
+                <TableHead>{t("invoices.seller")}</TableHead>
+                <TableHead>{t("invoices.buyer")}</TableHead>
+                <TableHead>{t("invoices.gross")}</TableHead>
+                <TableHead>{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-6">
-                    Loading...
+                    {t("common.loading")}
                   </TableCell>
                 </TableRow>
               ) : invoices.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-6">
-                    No invoices yet.
+                    {t("invoices.no_invoices")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -379,14 +395,18 @@ export const Invoices: React.FC = () => {
                     <TableCell>{inv.gross_amount ?? "-"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => {
                             handleGenerateXml(inv);
                           }}
                         >
                           XML
                         </Button>
-                        <Button variant="outline" size="sm"
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={async () => {
                             try {
                               const full = await invoke("cmd_get_invoice", {
@@ -399,7 +419,7 @@ export const Invoices: React.FC = () => {
                             }
                           }}
                         >
-                          View
+                          {t("invoices.view")}
                         </Button>
                       </div>
                     </TableCell>
