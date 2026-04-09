@@ -1,6 +1,8 @@
 import React from "react";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
-type PrimaryButtonProps = {
+export type PrimaryButtonProps = {
   children: React.ReactNode;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
@@ -11,12 +13,6 @@ type PrimaryButtonProps = {
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
-
-const primaryBase =
-  "px-6 py-3 rounded-2xl bg-primary bg-opacity-90 text-primary-content font-medium transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 shadow-none border-none hover:bg-primary hover:cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2";
-
-const ghostBase =
-  "px-6 py-3 rounded-2xl bg-primary/10 text-primary font-medium transition-all duration-200 active:scale-[0.98] disabled:opacity-50 shadow-none border-none hover:bg-primary/20 hover:cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2";
 
 export default function PrimaryButton({
   children,
@@ -39,23 +35,22 @@ export default function PrimaryButton({
   );
 
   return (
-    <button
+    <Button
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      aria-busy={loading}
-      className={`${primaryBase} ${className}`}
+      className={className}
       {...rest}
     >
       {loading ? (
         <span className="flex items-center gap-2">
-          <span className="loading loading-spinner loading-sm" />
+          <Loader2 className="h-4 w-4 animate-spin" />
           <span>{loadingText ?? children}</span>
         </span>
       ) : (
         content
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -68,14 +63,37 @@ export function GhostButton({
   ...rest
 }: PrimaryButtonProps) {
   return (
-    <button
+    <Button
+      variant="ghost"
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${ghostBase} ${className}`}
+      className={className}
       {...rest}
     >
       {children}
-    </button>
+    </Button>
+  );
+}
+
+export function SoftPrimaryButton({
+  children,
+  onClick,
+  disabled = false,
+  className = "",
+  type = "button",
+  ...rest
+}: PrimaryButtonProps) {
+  return (
+    <Button
+      variant="secondary"
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={className}
+      {...rest}
+    >
+      {children}
+    </Button>
   );
 }

@@ -28,7 +28,7 @@ export const ThemeCard = ({ theme, isActive, onClick }: ThemeCardProps) => {
       </div>
       <span className="capitalize text-sm font-medium">{theme}</span>
       {isActive && (
-        <CheckCircle2 className="w-4 h-4 absolute top-3 right-3 text-primary" />
+        <CheckCircle2 className="w-4 h-4 absolute top-3 right-3 text-primary-content" />
       )}
     </button>
   );

@@ -64,21 +64,6 @@ function rgbToHex(r: number, g: number, b: number) {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
 }
 
-function relativeLuminance([r, g, b]: [number, number, number]) {
-  const srgb = [r, g, b].map((v) => {
-    const s = v / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-  });
-  return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
-}
-
-function pickContrastColor(rgb: [number, number, number]) {
-  const L = relativeLuminance(rgb);
-  const contrastWithBlack = (L + 0.05) / 0.05;
-  const contrastWithWhite = 1.05 / (L + 0.05);
-  return contrastWithWhite >= contrastWithBlack ? "#FFFFFF" : "#000000";
-}
-
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -107,7 +92,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     const body = document.body;
 
     try {
-      root.setAttribute("data-theme", theme);
+      if (theme === "dark") {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
       try {
         localStorage.setItem("erp-theme", theme);
       } catch {}
@@ -155,12 +144,38 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
           `${lighter[0]} ${lighter[1]} ${lighter[2]}`,
         );
 
-        const contentColor = pickContrastColor(rgb);
-        root.style.setProperty("--primary-content", contentColor);
-        root.style.setProperty("--pc", contentColor);
+        let primaryContent = theme === "light" ? "#000000" : "#FFFFFF";
+
+        root.style.setProperty("--primary-content", primaryContent);
+        root.style.setProperty("--pc", primaryContent);
         if (body) {
-          body.style.setProperty("--primary-content", contentColor);
-          body.style.setProperty("--pc", contentColor);
+          body.style.setProperty("--primary-content", primaryContent);
+          body.style.setProperty("--pc", primaryContent);
+        }
+
+        root.style.setProperty("--sidebar-primary", primary);
+        root.style.setProperty("--sidebar-primary-foreground", primaryContent);
+
+        if (rgb) {
+          const accentAlpha = "0.28";
+          root.style.setProperty(
+            "--sidebar-accent",
+            `rgba(${rgb[0]} ${rgb[1]} ${rgb[2]} / ${accentAlpha})`,
+          );
+        } else {
+          root.style.setProperty("--sidebar-accent", lighterHex);
+        }
+        root.style.setProperty("--sidebar-accent-foreground", primaryContent);
+
+        if (rgb) {
+          root.style.setProperty(
+            "--sidebar-border",
+            `rgba(${rgb[0]} ${rgb[1]} ${rgb[2]} / 0.28)`,
+          );
+          root.style.setProperty(
+            "--sidebar-ring",
+            `rgba(${rgb[0]} ${rgb[1]} ${rgb[2]} / 0.18)`,
+          );
         }
 
         root.style.setProperty(
@@ -186,50 +201,60 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
           "";
 
         const overrideCss = `
-:root, body {
-  --p: ${primary} !important;
-  --primary: ${primary} !important;
-  ${pRgbForCss ? `--p-rgb: ${pRgbForCss} !important; --primary-rgb: ${pRgbForCss} !important;` : ""}
-  --primary-content: ${getComputedStyle(root).getPropertyValue("--primary-content") || getComputedStyle(root).getPropertyValue("--pc") || "#FFFFFF"} !important;
-}
+        :root, body {
+          --p: ${primary} !important;
+          --primary: ${primary} !important;
+          ${pRgbForCss ? `--p-rgb: ${pRgbForCss} !important; --primary-rgb: ${pRgbForCss} !important;` : ""}
+          --primary-content: ${getComputedStyle(root).getPropertyValue("--primary-content") || getComputedStyle(root).getPropertyValue("--pc") || "#FFFFFF"} !important;
+        }
 
-/* Ensure common primary classes update live */
-.text-primary { color: var(--primary) !important; }
-.bg-primary { background-color: var(--primary) !important; color: var(--primary-content) !important; }
-.bg-primary\\/5 { background-color: color-mix(in srgb, var(--primary) 5%, transparent) !important; }
-.bg-primary\\/10 { background-color: color-mix(in srgb, var(--primary) 10%, transparent) !important; }
-.bg-primary\\/20 { background-color: color-mix(in srgb, var(--primary) 20%, transparent) !important; }
-.bg-primary\\/30 { background-color: color-mix(in srgb, var(--primary) 30%, transparent) !important; }
+        /* Force dark text on light theme for anything using text-primary or avatar helper areas.
+           This ensures in light theme these elements are always black regardless of primary hue. */
+        :root:not(.dark) .text-primary { color: #000000 !important; }
+        :root:not(.dark) .avatar .bg-primary\/10, :root:not(.dark) .rounded.bg-primary\/10 { color: #000000 !important; }
 
-.border-primary { border-color: var(--primary) !important; }
-.border-primary\\/10 { border-color: color-mix(in srgb, var(--primary) 10%, transparent) !important; }
-.border-primary\\/20 { border-color: color-mix(in srgb, var(--primary) 20%, transparent) !important; }
-.border-primary\\/30 { border-color: color-mix(in srgb, var(--primary) 30%, transparent) !important; }
+        /* Force light text on dark theme for anything using text-primary or avatar helper areas.
+           This ensures in dark theme these elements are always white regardless of primary hue. */
+        :root.dark .text-primary { color: #FFFFFF !important; }
+        :root.dark .avatar .bg-primary\/10, :root.dark .rounded.bg-primary\/10 { color: #FFFFFF !important; }
 
-.btn-primary, .btn.btn-primary {
-  background-color: var(--primary) !important;
-  color: var(--primary-content) !important;
-  border-color: var(--primary) !important;
-}
+        /* Ensure common primary classes update live */
+        .text-primary { color: var(--primary-content) !important; }
+        .bg-primary { background-color: var(--primary) !important; color: var(--primary-content) !important; }
+        .bg-primary\/5 { background-color: color-mix(in srgb, var(--primary) 5%, transparent) !important; }
+        .bg-primary\/10 { background-color: color-mix(in srgb, var(--primary) 10%, transparent) !important; }
+        .bg-primary\/20 { background-color: color-mix(in srgb, var(--primary) 20%, transparent) !important; }
+        .bg-primary\/30 { background-color: color-mix(in srgb, var(--primary) 30%, transparent) !important; }
 
-.focus\\:ring-primary:focus, .ring-primary {
-  --tw-ring-color: color-mix(in srgb, var(--primary) 40%, transparent) !important;
-}
+        .border-primary { border-color: var(--primary) !important; }
+        .border-primary\/10 { border-color: color-mix(in srgb, var(--primary) 10%, transparent) !important; }
+        .border-primary\/20 { border-color: color-mix(in srgb, var(--primary) 20%, transparent) !important; }
+        .border-primary\/30 { border-color: color-mix(in srgb, var(--primary) 30%, transparent) !important; }
 
-/* translucent helper areas (avatars, badges) */
-.avatar .bg-primary\\/10, .rounded.bg-primary\\/10 {
-  background-color: color-mix(in srgb, var(--primary) 10%, transparent) !important;
-  color: var(--primary) !important;
-}
+        .btn-primary, .btn.btn-primary {
+          background-color: var(--primary) !important;
+          color: var(--primary-content) !important;
+          border-color: var(--primary) !important;
+        }
 
-/* readable content on solid primary */
-.bg-primary, .btn-primary, .badge-primary {
-  color: var(--primary-content) !important;
-}
+        .focus\\:ring-primary:focus, .ring-primary {
+          --tw-ring-color: color-mix(in srgb, var(--primary) 40%, transparent) !important;
+        }
 
-/* fallback for explicit attribute-marked elements */
-*[data-primary-bg] { background-color: var(--primary) !important; color: var(--primary-content) !important; }
-`.trim();
+        /* translucent helper areas (avatars, badges) */
+        .avatar .bg-primary\/10, .rounded.bg-primary\/10 {
+          background-color: color-mix(in srgb, var(--primary) 10%, transparent) !important;
+          color: var(--primary-content) !important;
+        }
+
+        /* readable content on solid primary */
+        .bg-primary, .btn-primary, .badge-primary {
+          color: var(--primary-content) !important;
+        }
+
+        /* fallback for explicit attribute-marked elements */
+        *[data-primary-bg] { background-color: var(--primary) !important; color: var(--primary-content) !important; }
+        `.trim();
 
         let styleEl = document.getElementById(
           "erp-dynamic-overrides",

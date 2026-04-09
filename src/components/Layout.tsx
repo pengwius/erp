@@ -1,25 +1,97 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
-  Menu,
   LayoutDashboard,
   FileText,
+  ScanBarcode,
   Settings,
   Palette,
   Wrench,
-  ChevronDown,
+  ChevronRight,
   Search,
+  LogOut,
+  User,
 } from "lucide-react";
 import { useOnboarding } from "../hooks/useOnboarding";
 
-export const Layout: any = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
-    Settings: true,
-  });
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "./ui/sidebar";
+
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
+
+import { Avatar, AvatarFallback } from "./ui/avatar";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+
+const menuItems = [
+  {
+    name: "Dashboard",
+    path: "/",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Invoices",
+    path: "/invoices",
+    icon: FileText,
+  },
+  {
+    name: "Products",
+    path: "/products",
+    icon: ScanBarcode,
+  },
+  {
+    name: "Settings",
+    icon: Settings,
+    subItems: [
+      {
+        name: "Appearance",
+        path: "/settings/appearance",
+        icon: Palette,
+      },
+      {
+        name: "Company",
+        path: "/settings/company",
+        icon: FileText,
+      },
+      {
+        name: "Advanced",
+        path: "/settings/advanced",
+        icon: Wrench,
+      },
+    ],
+  },
+];
+
+export const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
   const { needsOnboarding } = useOnboarding();
 
   useEffect(() => {
@@ -28,237 +100,174 @@ export const Layout: any = () => {
     }
   }, [needsOnboarding, navigate]);
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
-  const toggleMenu = (name: string) => {
-    setExpandedMenus((prev) => ({ ...prev, [name]: !prev[name] }));
-  };
-
-  const menuItems = [
-    {
-      name: "Dashboard",
-      path: "/",
-      icon: <LayoutDashboard className="w-5 h-5" />,
-    },
-    {
-      name: "Invoices",
-      path: "/invoices",
-      icon: <FileText className="w-5 h-5" />,
-    },
-    {
-      name: "Settings",
-      icon: <Settings className="w-5 h-5" />,
-      subItems: [
-        {
-          name: "Appearance",
-          path: "/settings/appearance",
-          icon: <Palette className="w-4 h-4" />,
-        },
-        {
-          name: "Company",
-          path: "/settings/company",
-          icon: <FileText className="w-4 h-4" />,
-        },
-        {
-          name: "Advanced",
-          path: "/settings/advanced",
-          icon: <Wrench className="w-4 h-4" />,
-        },
-      ],
-    },
-  ];
-
   return (
-    <div className="flex h-screen bg-base-100 text-base-content font-sans overflow-hidden">
-      {/* Sidebar */}
-      <aside
-        className={`bg-base-50 border-r border-base-200 flex flex-col transition-all duration-300 z-20 ${isSidebarOpen ? "w-64" : "w-20"}`}
-      >
-        <div className="h-16 flex items-center justify-center border-b border-base-200 px-4">
-          <span
-            className={`font-bold text-lg tracking-wider text-base-content transition-opacity duration-200 ${isSidebarOpen ? "opacity-100" : "hidden"}`}
-          >
-            ERP
-          </span>
-          <span
-            className={`font-bold text-lg tracking-wider text-primary transition-opacity duration-200 ${!isSidebarOpen ? "opacity-100" : "hidden"}`}
-          >
-            ERP
-          </span>
-        </div>
-
-        <nav className="flex-1 overflow-y-auto w-full py-4 px-3 space-y-1">
-          {menuItems.map((item) => (
-            <div key={item.name} className="flex flex-col gap-1">
-              {item.subItems ? (
-                <>
-                  <button
-                    onClick={() => toggleMenu(item.name)}
-                    className={`flex w-full items-center ${isSidebarOpen ? "justify-between px-3" : "justify-center px-0"} py-2.5 rounded-lg transition-colors text-base-content/70 hover:bg-base-200 hover:text-base-content`}
-                    title={!isSidebarOpen ? item.name : undefined}
-                  >
-                    <div
-                      className={`flex items-center ${isSidebarOpen ? "gap-3" : ""}`}
-                    >
-                      <div className="shrink-0">{item.icon}</div>
-                      {isSidebarOpen && (
-                        <span className="truncate whitespace-nowrap">
-                          {item.name}
-                        </span>
-                      )}
-                    </div>
-                    {isSidebarOpen && (
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform duration-200 ${expandedMenus[item.name] ? "rotate-180" : ""}`}
-                      />
-                    )}
-                  </button>
-                  {isSidebarOpen && expandedMenus[item.name] && (
-                    <div
-                      className="ml-6 pl-2 border-l-2 flex flex-col gap-1 mt-1 overflow-hidden animate-fade-in"
-                      style={{
-                        borderLeftColor:
-                          "color-mix(in srgb, var(--primary) 30%, transparent)",
-                      }}
-                    >
-                      {item.subItems.map((subItem) => (
-                        <NavLink
-                          key={subItem.name}
-                          to={subItem.path}
-                          className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                              isActive
-                                ? "font-medium"
-                                : "text-base-content/70 hover:bg-base-200 hover:text-base-content"
-                            }`
-                          }
-                          style={({ isActive }) =>
-                            isActive
-                              ? {
-                                  backgroundColor:
-                                    "color-mix(in srgb, var(--primary) 10%, transparent)",
-                                  color: "var(--primary)",
-                                }
-                              : undefined
-                          }
-                        >
-                          <div className="shrink-0">{subItem.icon}</div>
-                          <span className="truncate text-sm">
-                            {subItem.name}
-                          </span>
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <NavLink
-                  to={item.path!}
-                  className={({ isActive }) =>
-                    `flex items-center ${isSidebarOpen ? "px-3 gap-3" : "justify-center px-0"} py-2.5 rounded-lg transition-colors ${
-                      isActive
-                        ? "font-medium"
-                        : "text-base-content/70 hover:bg-base-200 hover:text-base-content"
-                    }`
-                  }
-                  style={({ isActive }) =>
-                    isActive
-                      ? {
-                          backgroundColor:
-                            "color-mix(in srgb, var(--primary) 10%, transparent)",
-                          color: "var(--primary)",
-                        }
-                      : undefined
-                  }
-                  title={!isSidebarOpen ? item.name : undefined}
-                >
-                  <div className="shrink-0">{item.icon}</div>
-                  {isSidebarOpen && (
-                    <span className="truncate whitespace-nowrap">
-                      {item.name}
-                    </span>
-                  )}
-                </NavLink>
-              )}
+    <SidebarProvider>
+      <Sidebar variant="inset" collapsible="icon">
+        <SidebarHeader className="h-16 flex items-center justify-center border-b px-4 transition-[height] ease-linear">
+          <div className="flex w-full items-center gap-2 overflow-hidden">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
+              E
             </div>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-base-200">
-          <div
-            className={`flex items-center ${isSidebarOpen ? "gap-3" : "justify-center"}`}
-          >
-            <div className="avatar">
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center font-medium"
-                style={{
-                  backgroundColor:
-                    "color-mix(in srgb, var(--primary) 10%, transparent)",
-                  color: "var(--primary)",
-                }}
-              >
-                JD
-              </div>
-            </div>
-            {isSidebarOpen && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-base-content">
-                  John Doe
-                </p>
-                <p className="text-xs truncate text-base-content/60">
-                  Administrator
-                </p>
-              </div>
-            )}
+            <span className="font-bold text-lg tracking-wider truncate group-data-[collapsible=icon]:hidden">
+              ERP System
+            </span>
           </div>
-        </div>
-      </aside>
+        </SidebarHeader>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        {/* Topbar */}
-        <header className="h-16 bg-base-100/80 backdrop-blur-sm border-b border-base-200 flex items-center justify-between px-6 sticky top-0 z-10">
-          <div className="flex items-center gap-4">
-            <button
-              className="p-2 -ml-2 rounded-lg text-base-content/70 hover:bg-base-200 hover:text-base-content transition-colors"
-              onClick={toggleSidebar}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <div className="hidden sm:flex text-sm text-base-content/60">
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Application</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menuItems.map((item) =>
+                  item.subItems ? (
+                    <Collapsible
+                      key={item.name}
+                      defaultOpen
+                      className="group/collapsible"
+                    >
+                      <SidebarMenuItem>
+                        <CollapsibleTrigger
+                          render={
+                            <SidebarMenuButton tooltip={item.name}>
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.name}</span>
+                              <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[open]/collapsible:rotate-90" />
+                            </SidebarMenuButton>
+                          }
+                        />
+                        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down data-[closed]:animate-collapsible-up data-[open]:animate-collapsible-down">
+                          <SidebarMenuSub>
+                            {item.subItems.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.name}>
+                                <SidebarMenuSubButton
+                                  isActive={location.pathname === subItem.path}
+                                  render={
+                                    <NavLink to={subItem.path}>
+                                      <subItem.icon className="h-4 w-4" />
+                                      <span>{subItem.name}</span>
+                                    </NavLink>
+                                  }
+                                />
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </SidebarMenuItem>
+                    </Collapsible>
+                  ) : (
+                    <SidebarMenuItem key={item.name}>
+                      <SidebarMenuButton
+                        tooltip={item.name}
+                        isActive={location.pathname === item.path}
+                        render={
+                          <NavLink to={item.path}>
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.name}</span>
+                          </NavLink>
+                        }
+                      />
+                    </SidebarMenuItem>
+                  ),
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <SidebarMenuButton
+                      size="lg"
+                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    >
+                      <Avatar className="h-8 w-8 rounded-lg">
+                        <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                          JD
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold">John Doe</span>
+                        <span className="truncate text-xs">Administrator</span>
+                      </div>
+                    </SidebarMenuButton>
+                  }
+                />
+                <DropdownMenuContent
+                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                  side="bottom"
+                  align="end"
+                  sideOffset={4}
+                >
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                      <Avatar className="h-8 w-8 rounded-lg">
+                        <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                          JD
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold">John Doe</span>
+                        <span className="truncate text-xs">Administrator</span>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    Account
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10 transition-[width,height] ease-linear">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <div className="hidden sm:flex items-center text-sm text-muted-foreground ml-2">
               <span
-                className="hover:text-base-content cursor-pointer transition-colors"
+                className="hover:text-foreground cursor-pointer transition-colors"
                 onClick={() => navigate("/")}
               >
                 Home
               </span>
               <span className="mx-2">/</span>
-              <span className="text-base-content font-medium capitalize">
+              <span className="text-foreground font-medium capitalize">
                 {location.pathname.split("/").filter(Boolean).pop() ||
                   "Dashboard"}
               </span>
             </div>
           </div>
-
           <div className="flex items-center gap-3">
             <div className="relative hidden md:block">
               <input
                 type="text"
                 placeholder="Search..."
-                className="pl-9 pr-4 py-1.5 w-64 bg-base-200/50 border border-transparent focus:border-base-300 focus:bg-base-100 rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="pl-9 pr-4 py-1.5 w-64 bg-muted/50 border border-transparent focus:border-input focus:bg-background rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
-              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/80" />
             </div>
           </div>
         </header>
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-base-200/30 p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-muted/30 p-6">
           <div className="container mx-auto max-w-7xl">
             <Outlet />
           </div>
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 };

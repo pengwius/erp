@@ -9,7 +9,7 @@ import {
   Sparkles,
   Rocket,
   CheckCircle2,
-  Zap,
+  Zap, Loader2,
 } from "lucide-react";
 
 import SoftPrimaryButton from "../components/PrimaryButton";
@@ -77,10 +77,10 @@ export const Onboarding: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-base-200/50 flex items-center justify-center p-4 sm:p-8">
-      <div className="w-full max-w-6xl bg-base-100 rounded-[2.5rem] shadow-xl shadow-base-300/20 overflow-hidden border border-base-200 flex flex-col lg:flex-row min-h-175">
+    <div className="min-h-screen w-full bg-muted/50 flex items-center justify-center p-4 sm:p-8">
+      <div className="w-full max-w-6xl bg-background rounded-[2.5rem] shadow-xl shadow-base-300/20 overflow-hidden border border-border flex flex-col lg:flex-row min-h-175">
         {/* Left Side */}
-        <aside className="relative hidden lg:flex lg:w-[40%] bg-base-200/30 p-12 flex-col justify-between overflow-hidden border-r border-base-200">
+        <aside className="relative hidden lg:flex lg:w-[40%] bg-muted/30 p-12 flex-col justify-between overflow-hidden border-r border-border">
           <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
           <div className="absolute bottom-[-10%] right-[-10%] w-64 h-64 bg-secondary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
 
@@ -88,10 +88,10 @@ export const Onboarding: React.FC = () => {
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 text-primary mb-8">
               <Rocket className="w-6 h-6" />
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-base-content mb-4">
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-4">
               Welcome to ERP
             </h1>
-            <p className="text-base-content/60 text-lg leading-relaxed">
+            <p className="text-muted-foreground text-lg leading-relaxed">
               Let's set up your workspace. A few quick steps to get you ready.
             </p>
           </div>
@@ -109,7 +109,7 @@ export const Onboarding: React.FC = () => {
                     {idx !== stepsList.length - 1 && (
                       <div
                         className={`absolute left-4.5 top-10 w-0.5 h-12 -ml-px transition-colors duration-300 ${
-                          isPast ? "bg-primary/50" : "bg-base-300/50"
+                          isPast ? "bg-primary/50" : "bg-border/50"
                         }`}
                       />
                     )}
@@ -117,10 +117,10 @@ export const Onboarding: React.FC = () => {
                     <div
                       className={`relative flex items-center justify-center w-9 h-9 rounded-full border-2 transition-all duration-300 z-10 ${
                         isActive
-                          ? "border-primary bg-primary text-primary-content scale-110"
+                          ? "border-primary bg-primary text-primary-foreground scale-110"
                           : isPast
                             ? "border-primary bg-primary/10 text-primary"
-                            : "border-base-300 bg-base-100 text-base-content/30"
+                            : "border-border bg-background text-muted-foreground/50"
                       }`}
                     >
                       {isPast ? (
@@ -134,11 +134,11 @@ export const Onboarding: React.FC = () => {
                       className={`transition-opacity duration-300 ${isActive || isPast ? "opacity-100" : "opacity-40"}`}
                     >
                       <div
-                        className={`font-semibold ${isActive ? "text-primary" : "text-base-content"}`}
+                        className={`font-semibold ${isActive ? "text-primary" : "text-foreground"}`}
                       >
                         {s.title}
                       </div>
-                      <div className="text-sm text-base-content/60">
+                      <div className="text-sm text-muted-foreground">
                         {s.desc}
                       </div>
                     </div>
@@ -150,12 +150,12 @@ export const Onboarding: React.FC = () => {
         </aside>
 
         {/* Right Side */}
-        <main className="w-full lg:w-[60%] p-8 sm:p-12 lg:p-16 flex flex-col bg-base-100 relative">
+        <main className="w-full lg:w-[60%] p-8 sm:p-12 lg:p-16 flex flex-col bg-background relative">
           <div className="lg:hidden flex items-center gap-2 mb-8">
             {stepsList.map((s) => (
               <div
                 key={s.id}
-                className="flex-1 h-2 rounded-full bg-base-200 overflow-hidden"
+                className="flex-1 h-2 rounded-full bg-muted overflow-hidden"
               >
                 <div
                   className="h-full bg-primary transition-all duration-500 ease-out"
@@ -174,7 +174,7 @@ export const Onboarding: React.FC = () => {
                 <h2 className="text-3xl font-extrabold tracking-tight">
                   Get started
                 </h2>
-                <p className="text-base-content/60 text-lg">
+                <p className="text-muted-foreground text-lg">
                   We'll guide you through a short setup so you can start using
                   the program right away.
                 </p>
@@ -196,7 +196,7 @@ export const Onboarding: React.FC = () => {
                   <h2 className="text-3xl font-extrabold tracking-tight mb-2">
                     Company details
                   </h2>
-                  <p className="text-base-content/60">
+                  <p className="text-muted-foreground">
                     Enter your company information. These details will appear on
                     invoices.
                   </p>
@@ -268,20 +268,20 @@ export const Onboarding: React.FC = () => {
                   <h2 className="text-3xl font-extrabold tracking-tight mb-2">
                     KSeF Integration
                   </h2>
-                  <p className="text-base-content/60">
+                  <p className="text-muted-foreground">
                     The national e-invoice system can streamline invoicing. You
                     can connect now or set it up later.
                   </p>
                 </div>
 
-                <div className="p-6 rounded-2xl bg-base-200/50 border border-base-200 mt-6 flex flex-col items-center justify-center text-center gap-3">
+                <div className="p-6 rounded-2xl bg-muted/50 border border-border mt-6 flex flex-col items-center justify-center text-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-2">
                     <Zap className="w-6 h-6" />
                   </div>
                   <h3 className="font-semibold text-lg">
                     KSeF module coming soon
                   </h3>
-                  <p className="text-sm text-base-content/60 max-w-sm">
+                  <p className="text-sm text-muted-foreground max-w-sm">
                     Full KSeF support will arrive in a future update. Invoices
                     work normally for now.
                   </p>
@@ -308,38 +308,38 @@ export const Onboarding: React.FC = () => {
                   <h2 className="text-3xl font-extrabold tracking-tight mb-2">
                     Summary
                   </h2>
-                  <p className="text-base-content/60">
+                  <p className="text-muted-foreground">
                     Review the details below before saving.
                   </p>
                 </div>
 
-                <div className="bg-base-200/40 rounded-2xl p-6 border border-base-200 space-y-4">
-                  <div className="grid grid-cols-3 gap-2 border-b border-base-300/50 pb-3">
-                    <div className="text-base-content/60 text-sm">Name</div>
+                <div className="bg-muted/40 rounded-2xl p-6 border border-border space-y-4">
+                  <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
+                    <div className="text-muted-foreground text-sm">Name</div>
                     <div className="col-span-2 font-medium text-right">
                       {name || "—"}
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 border-b border-base-300/50 pb-3">
-                    <div className="text-base-content/60 text-sm">Tax ID</div>
+                  <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
+                    <div className="text-muted-foreground text-sm">Tax ID</div>
                     <div className="col-span-2 font-medium text-right">
                       {nip || "—"}
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 border-b border-base-300/50 pb-3">
-                    <div className="text-base-content/60 text-sm">Street</div>
+                  <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
+                    <div className="text-muted-foreground text-sm">Street</div>
                     <div className="col-span-2 font-medium text-right">
                       {street || "—"}
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 border-b border-base-300/50 pb-3">
-                    <div className="text-base-content/60 text-sm">City</div>
+                  <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
+                    <div className="text-muted-foreground text-sm">City</div>
                     <div className="col-span-2 font-medium text-right">
                       {city || "—"}
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 border-b border-base-300/50 pb-3">
-                    <div className="text-base-content/60 text-sm">
+                  <div className="grid grid-cols-3 gap-2 border-b border-border/50 pb-3">
+                    <div className="text-muted-foreground text-sm">
                       Postal code
                     </div>
                     <div className="col-span-2 font-medium text-right">
@@ -347,7 +347,7 @@ export const Onboarding: React.FC = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="text-base-content/60 text-sm">Country</div>
+                    <div className="text-muted-foreground text-sm">Country</div>
                     <div className="col-span-2 font-medium text-right">
                       {country || "—"}
                     </div>
@@ -355,7 +355,7 @@ export const Onboarding: React.FC = () => {
                 </div>
 
                 {error && (
-                  <div className="p-4 rounded-xl bg-error/10 text-error text-sm font-medium">
+                  <div className="p-4 rounded-xl bg-destructive/10 text-destructive text-sm font-medium">
                     {error}
                   </div>
                 )}
@@ -369,7 +369,7 @@ export const Onboarding: React.FC = () => {
                       onClick={submitCompany}
                       disabled={loading}
                       icon={
-                        <span className="loading loading-spinner loading-sm" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       }
                       iconPosition="left"
                     >
