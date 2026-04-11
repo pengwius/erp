@@ -67,6 +67,15 @@ pub fn run() {
                                 }
                             }
                         }
+                        match diesel::sql_query("ALTER TABLE products ADD COLUMN short_description TEXT;").execute(&mut *conn) {
+                            Ok(_) => {}
+                            Err(err) => {
+                                let s = err.to_string();
+                                if !s.contains("duplicate column name") && !s.contains("already exists") {
+                                    eprintln!("schema patch (add short_description) failed: {}", s);
+                                }
+                            }
+                        }
                     }
                 }
                 Err(e) => {
@@ -86,6 +95,15 @@ pub fn run() {
                                         let s = err.to_string();
                                         if !s.contains("duplicate column name") && !s.contains("already exists") {
                                             eprintln!("schema patch (add ean) failed on fallback DB: {}", s);
+                                        }
+                                    }
+                                }
+                                match diesel::sql_query("ALTER TABLE products ADD COLUMN short_description TEXT;").execute(&mut *conn) {
+                                    Ok(_) => {}
+                                    Err(err) => {
+                                        let s = err.to_string();
+                                        if !s.contains("duplicate column name") && !s.contains("already exists") {
+                                            eprintln!("schema patch (add short_description) failed on fallback DB: {}", s);
                                         }
                                     }
                                 }
@@ -118,8 +136,10 @@ pub fn run() {
             commands::invoice::cmd_generate_invoice_xml,
             commands::invoice::cmd_update_invoice_number,
             commands::product::cmd_create_product,
+            commands::product::cmd_get_image,
             commands::product::cmd_update_product,
             commands::product::cmd_delete_product,
+            commands::product::cmd_delete_product_price,
             commands::product::cmd_list_products,
             commands::product::cmd_get_product,
             commands::product::cmd_create_product_price,

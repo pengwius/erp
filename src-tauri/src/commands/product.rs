@@ -14,6 +14,7 @@ pub struct CreateProductPayload {
     pub ean: Option<String>,
     pub name: String,
     pub description: Option<String>,
+    pub short_description: Option<String>,
     pub category: Option<String>,
     pub brand: Option<String>,
     pub model: Option<String>,
@@ -50,6 +51,7 @@ pub struct UpdateProductPayload {
     pub ean: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
+    pub short_description: Option<String>,
     pub category: Option<String>,
     pub brand: Option<String>,
     pub model: Option<String>,
@@ -170,6 +172,7 @@ pub async fn cmd_create_product(payload: CreateProductPayload) -> Result<product
             ean: payload.ean,
             name: payload.name,
             description: payload.description,
+            short_description: payload.short_description,
             category: payload.category,
             brand: payload.brand,
             model: payload.model,
@@ -219,6 +222,20 @@ pub async fn cmd_create_product(payload: CreateProductPayload) -> Result<product
                             eprintln!("cmd_create_product retry failed: {:?}", e);
                             e.to_string()
                         })
+                    } else if s.contains("no column named short_description") || s.contains("has no column named short_description") {
+                        match diesel::sql_query("ALTER TABLE products ADD COLUMN short_description TEXT;").execute(conn) {
+                            Ok(_) => {
+                                eprintln!("schema patch: added column 'short_description' to products table, retrying insert");
+                            }
+                            Err(e) => { let e: diesel::result::Error = e;
+                                let s = e.to_string();
+                                eprintln!("schema patch (add short_description) failed: {}", s);
+                            }
+                        }
+                        product::create_product(conn, np_retry).map_err(|e| {
+                            eprintln!("cmd_create_product retry failed: {:?}", e);
+                            e.to_string()
+                        })
                     } else {
                         Err(s)
                     }
@@ -243,6 +260,7 @@ pub async fn cmd_update_product(payload: UpdateProductPayload) -> Result<product
             ean: Some(payload.ean),
             name: payload.name,
             description: Some(payload.description),
+            short_description: Some(payload.short_description),
             category: Some(payload.category),
             brand: Some(payload.brand),
             model: Some(payload.model),
@@ -283,6 +301,22 @@ pub async fn cmd_update_product(payload: UpdateProductPayload) -> Result<product
 #[tauri::command]
 pub async fn cmd_delete_product(id: i32) -> Result<usize, String> {
     run_db_task(move |conn| product::delete_product(conn, id).map_err(|e| e.to_string())).await
+}
+
+#[tauri::command]
+pub async fn cmd_delete_product_price(price_id: i32) -> Result<usize, String> {
+    run_db_task(move |conn| product::delete_product_price(conn, price_id).map_err(|e| e.to_string())).await
+}
+
+#[tauri::command]
+pub async fn cmd_get_image(path: String) -> Result<String, String> {
+    let app_dir: PathBuf = crate::APP_DIR
+        .get()
+        .cloned()
+        .unwrap_or_else(|| std::env::temp_dir());
+    let full_path = app_dir.join(path);
+    let bytes = std::fs::read(&full_path).map_err(|e| e.to_string())?;
+    Ok(BASE64.encode(bytes))
 }
 
 #[tauri::command]

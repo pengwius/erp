@@ -1,6 +1,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 
 export interface InputFieldProps extends Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -15,6 +16,7 @@ export interface InputFieldProps extends Omit<
   inputClassName?: string;
   info?: string;
   type?: React.HTMLInputTypeAttribute;
+  showOptional?: boolean;
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
@@ -27,15 +29,24 @@ export const InputField: React.FC<InputFieldProps> = ({
   inputClassName = "",
   info,
   type,
+  showOptional = false,
   ...rest
 }) => {
+  const { t } = useTranslation();
   const inputType = type ?? "text";
 
   return (
     <div className={`space-y-2 w-full ${className}`}>
-      <div className="flex items-center gap-2">
-        <Label className="flex items-center gap-1">
-          {label} {required && <span className="text-destructive">*</span>}
+      <div className="flex items-start sm:items-center gap-2">
+        <Label className="flex flex-wrap items-center gap-1 leading-snug">
+          <span>
+            {label} {required && <span className="text-destructive">*</span>}
+          </span>
+          {!required && showOptional && (
+            <span className="text-muted-foreground font-normal text-xs whitespace-normal inline-block mt-0.5 sm:mt-0">
+              ({t("common.optional")})
+            </span>
+          )}
         </Label>
         {info && (
           <span

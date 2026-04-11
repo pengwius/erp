@@ -20,7 +20,8 @@
     "application": "Application",
     "account": "Account",
     "log_out": "Log out",
-    "administrator": "Administrator"
+    "administrator": "Administrator",
+    "optional": "optional"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -120,8 +121,8 @@
     "ean_tooltip": "European Article Number / Global Trade Item Number (e.g. barcode).",
     "descriptions_media": "Descriptions & Media",
     "short_description": "Short Description",
-    "long_description": "Long Description (Markdown)",
-    "long_desc_tooltip": "Supports Markdown formatting (bold, lists, etc.).",
+    "long_description": "Long Description",
+    "long_desc_tooltip": "Detailed description of the product.",
     "images": "Images",
     "images_tooltip": "You can select multiple image files at once.",
     "pricing": "Pricing",
@@ -147,11 +148,16 @@
     "ksef_proc": "KSeF Proc.",
     "ksef_proc_tooltip": "Applied procedure for the National e-Invoice System.",
     "expiry_date": "Expiry Date",
+    "has_expiry_date": "Has expiry date",
     "lot_number": "Lot / Batch Number",
     "lot_number_tooltip": "Production lot or batch number (useful for warranty/tracking).",
     "country_of_origin": "Country of Origin",
     "form_description": "Fill in the details below to configure your product. Required fields are marked.",
-    "custom_attributes": "Custom Attributes (JSON)"
+    "custom_attributes": "Custom Attributes (JSON)",
+    "type_product": "Product",
+    "type_product_desc": "Physical goods that require inventory tracking.",
+    "type_service": "Service",
+    "type_service_desc": "Intangible services, no inventory tracking."
   },
   "invoices": {
     "title": "Invoices",

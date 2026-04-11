@@ -146,3 +146,81 @@
         @apply font-sans;
     }
 }
+
+.ql-toolbar.ql-snow {
+    border: 1px solid var(--border) !important;
+    border-top-left-radius: calc(var(--radius) - 2px);
+    border-top-right-radius: calc(var(--radius) - 2px);
+    background-color: var(--muted);
+    font-family: inherit !important;
+    padding: 0.5rem !important;
+}
+
+.ql-container.ql-snow {
+    border: 1px solid var(--border) !important;
+    border-top: none !important;
+    border-bottom-left-radius: calc(var(--radius) - 2px);
+    border-bottom-right-radius: calc(var(--radius) - 2px);
+    background-color: var(--background);
+    font-family: inherit !important;
+    font-size: 0.875rem !important;
+}
+
+.ql-editor {
+    min-height: 120px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.ql-container.ql-snow:focus-within {
+    border-color: var(--ring) !important;
+    outline: none;
+    box-shadow: 0 0 0 1px var(--ring);
+}
+
+.ql-snow .ql-picker-options {
+    z-index: 100 !important;
+    background-color: var(--popover) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    box-shadow:
+        0 4px 6px -1px rgb(0 0 0 / 0.1),
+        0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+    padding: 0.25rem !important;
+    margin-top: 4px;
+}
+
+.ql-snow .ql-picker-item {
+    border-radius: calc(var(--radius) - 4px);
+    padding: 0.25rem 0.5rem !important;
+    color: var(--foreground) !important;
+    cursor: pointer !important;
+}
+
+.ql-snow .ql-picker-item:hover,
+.ql-snow .ql-picker-item.ql-selected {
+    background-color: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+}
+
+.ql-snow .ql-picker {
+    color: var(--foreground) !important;
+}
+
+.ql-snow .ql-picker-label * {
+    pointer-events: none;
+}
+
+.ql-snow .ql-stroke {
+    stroke: var(--foreground) !important;
+}
+
+.ql-snow .ql-fill,
+.ql-snow .ql-stroke.ql-fill {
+    fill: var(--foreground) !important;
+}
+
+.ql-editor.ql-blank::before {
+    color: var(--muted-foreground) !important;
+    font-style: normal !important;
+}

@@ -79,8 +79,8 @@ export default function Products() {
     setLoading(true);
     try {
       const res: any = await invoke("cmd_list_products", {
-        company_id: companyId,
-        only_active: true,
+        companyId,
+        onlyActive: true,
         limit: 200,
       });
       if (Array.isArray(res)) {
@@ -107,11 +107,6 @@ export default function Products() {
     setPriceCurrency("PLN");
     setPriceValidFrom(new Date().toISOString().slice(0, 10));
     setError(null);
-  }
-
-  function openCreateForm() {
-    resetFormFields();
-    navigate("/products/new");
   }
 
   function handleEdit(productId: number) {
@@ -198,7 +193,12 @@ export default function Products() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{t("products.title")}</h1>
         <div className="flex items-center gap-3">
-          <SoftPrimaryButton onClick={openCreateForm}>
+          <SoftPrimaryButton
+            onClick={() => {
+              resetFormFields();
+              navigate("/products/new");
+            }}
+          >
             {t("products.new_product")}
           </SoftPrimaryButton>
         </div>

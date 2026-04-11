@@ -5,9 +5,11 @@ import InputField from "../../components/InputField";
 import SoftPrimaryButton, { GhostButton } from "../../components/PrimaryButton";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AlertCircle, Loader2 } from "lucide-react";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 
 type ProductPayload = {
   company_id: number;
@@ -22,10 +24,9 @@ type ProductPayload = {
   cn_code?: string | null;
   pkwiu?: string | null;
   gtu_code?: string | null;
-  ksef_procedure?: string | null;
 
   purchase_price_net?: string | null;
-  sell_price_net?: string | null;
+  sale_price_net?: string | null;
   sell_price_gross?: string | null;
   currency?: string | null;
 
@@ -39,7 +40,7 @@ type ProductPayload = {
   height?: string | null;
 
   short_description?: string | null;
-  long_description?: string | null;
+  description?: string | null;
   images?: any[] | null;
   attributes?: Record<string, string> | null;
 
@@ -51,6 +52,63 @@ type ProductPayload = {
 };
 
 import { useTranslation } from "react-i18next";
+import { X } from "lucide-react";
+
+function AsyncImagePreview({
+  src,
+  index,
+  onRemove,
+}: {
+  src: string;
+  index: number;
+  onRemove: (i: number) => void;
+}) {
+  const [imgSrc, setImgSrc] = useState<string>(src);
+
+  useEffect(() => {
+    if (
+      src &&
+      !src.startsWith("data:") &&
+      !src.startsWith("http") &&
+      !src.startsWith("blob:")
+    ) {
+      import("@tauri-apps/api/core").then(({ invoke }) => {
+        invoke("cmd_get_image", { path: src })
+          .then((b64: any) => {
+            const ext = src.split(".").pop()?.toLowerCase();
+            const mime =
+              ext === "png"
+                ? "image/png"
+                : ext === "gif"
+                  ? "image/gif"
+                  : "image/jpeg";
+            setImgSrc(`data:${mime};base64,${b64}`);
+          })
+          .catch(console.error);
+      });
+    } else {
+      setImgSrc(src);
+    }
+  }, [src]);
+
+  return (
+    <div className="relative bg-background border border-border rounded overflow-hidden h-24">
+      <button
+        type="button"
+        onClick={() => onRemove(index)}
+        className="inline-flex items-center justify-center rounded-full text-xs h-6 w-6 absolute top-1 right-1 z-10 bg-muted hover:bg-accent"
+        aria-label={`Remove image ${index + 1}`}
+      >
+        <X className="w-3 h-3" />
+      </button>
+      <img
+        src={imgSrc}
+        alt={`Preview ${index + 1}`}
+        className="w-full h-full object-cover"
+      />
+    </div>
+  );
+}
 
 export default function ProductForm() {
   const { t } = useTranslation();
@@ -72,7 +130,6 @@ export default function ProductForm() {
   const [cnCode, setCnCode] = useState("");
   const [pkwiu, setPkwiu] = useState("");
   const [gtuCode, setGtuCode] = useState("");
-  const [ksefProcedure, setKsefProcedure] = useState("");
 
   const [purchasePriceNet, setPurchasePriceNet] = useState("0.00");
   const [sellPriceNet, setSellPriceNet] = useState("0.00");
@@ -90,10 +147,8 @@ export default function ProductForm() {
   const [shortDescription, setShortDescription] = useState("");
   const [longDescription, setLongDescription] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [attributesJson, setAttributesJson] = useState("{}");
 
-  const [isService, setIsService] = useState(false);
-  const [isActive, setIsActive] = useState(true);
+  const [hasExpiryDate, setHasExpiryDate] = useState(false);
   const [expiryDate, setExpiryDate] = useState<string | null>(null);
   const [lotNumber, setLotNumber] = useState("");
   const [countryOfOrigin, setCountryOfOrigin] = useState("");
@@ -116,6 +171,18 @@ export default function ProductForm() {
     const margin = ((sell - purchase) / purchase) * 100;
     return margin.toFixed(2) + "%";
   }, [purchasePriceNet, sellPriceNet]);
+
+  const quillModules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["clean"],
+      ],
+    }),
+    [],
+  );
 
   useEffect(() => {
     (async () => {
@@ -153,9 +220,8 @@ export default function ProductForm() {
       setCnCode(p.cn_code || "");
       setPkwiu(p.pkwiu || "");
       setGtuCode(p.gtu_code || "");
-      setKsefProcedure(p.ksef_procedure || "");
       setPurchasePriceNet(p.purchase_price_net || "0.00");
-      setSellPriceNet((p.sell_price_net ?? p.sale_price_net) || "0.00");
+      setSellPriceNet(p.sale_price_net || "0.00");
       setCurrency(p.currency || "PLN");
       setUnit(p.unit || "szt");
       setStock(p.stock ? String(p.stock) : null);
@@ -166,7 +232,7 @@ export default function ProductForm() {
       setWidthCm(p.width || "");
       setHeightCm(p.height || "");
       setShortDescription(p.short_description || "");
-      setLongDescription(p.long_description || "");
+      setLongDescription(p.description || "");
       let imgs: any[] = [];
       if (p.images) {
         try {
@@ -181,9 +247,7 @@ export default function ProductForm() {
         return String(it);
       });
       setImagePreviews(previews);
-      setAttributesJson(JSON.stringify(p.attributes || {}, null, 2));
-      setIsService(Boolean(p.is_service));
-      setIsActive(Boolean(p.is_active ?? true));
+      setHasExpiryDate(!!p.expiry_date);
       setExpiryDate(p.expiry_date || null);
       setLotNumber(p.lot_number || "");
       setCountryOfOrigin(p.country_of_origin || "");
@@ -207,14 +271,6 @@ export default function ProductForm() {
       return;
     }
 
-    let attributesObj: Record<string, string> | null = null;
-    try {
-      attributesObj = attributesJson ? JSON.parse(attributesJson) : {};
-    } catch (e) {
-      setError("Attributes JSON is invalid. Please fix it.");
-      return;
-    }
-
     const payload: ProductPayload = {
       company_id: companyId,
       sku: sku || null,
@@ -227,9 +283,8 @@ export default function ProductForm() {
       cn_code: cnCode || null,
       pkwiu: pkwiu || null,
       gtu_code: gtuCode || null,
-      ksef_procedure: ksefProcedure || null,
       purchase_price_net: purchasePriceNet || null,
-      sell_price_net: sellPriceNet || null,
+      sale_price_net: sellPriceNet || null,
       sell_price_gross: sellPriceGross || null,
       currency: currency || null,
       unit: unit || null,
@@ -241,12 +296,12 @@ export default function ProductForm() {
       width: widthCm || null,
       height: heightCm || null,
       short_description: shortDescription || null,
-      long_description: longDescription || null,
+      description: longDescription || null,
       images: imagePreviews.length ? imagePreviews : null,
-      attributes: attributesObj,
-      is_service: isService ? 1 : 0,
-      is_active: isActive ? 1 : 0,
-      expiry_date: expiryDate || null,
+      attributes: {},
+      is_service: 0,
+      is_active: 1,
+      expiry_date: hasExpiryDate ? expiryDate || null : null,
       lot_number: lotNumber || null,
       country_of_origin: countryOfOrigin || null,
     };
@@ -383,28 +438,33 @@ export default function ProductForm() {
                   value={category}
                   onChange={setCategory}
                   info={t("products.category_tooltip")}
+                  showOptional
                 />
                 <InputField
                   label={t("products.brand_manufacturer")}
                   value={brand}
                   onChange={setBrand}
+                  showOptional
                 />
                 <InputField
                   label={t("products.model")}
                   value={model}
                   onChange={setModel}
+                  showOptional
                 />
                 <InputField
                   label={t("products.sku_internal")}
                   value={sku}
                   onChange={setSku}
                   info={t("products.sku_tooltip")}
+                  showOptional
                 />
                 <InputField
                   label={t("products.ean_gtin")}
                   value={ean}
                   onChange={setEan}
                   info={t("products.ean_tooltip")}
+                  showOptional
                 />
               </div>
             </CardContent>
@@ -424,11 +484,12 @@ export default function ProductForm() {
                   label={t("products.short_description")}
                   value={shortDescription}
                   onChange={setShortDescription}
+                  showOptional
                 />
 
-                <label className="flex flex-col gap-2 w-full">
+                <div className="flex flex-col gap-2 w-full">
                   <div className="label flex items-center gap-2">
-                    <span className="label-text font-medium text-muted-foreground">
+                    <span className="label-text font-medium text-foreground">
                       {t("products.long_description")}
                     </span>
                     <span
@@ -438,12 +499,16 @@ export default function ProductForm() {
                       ?
                     </span>
                   </div>
-                  <Textarea
-                    className=" h-32 w-full focus:outline-none focus:border-primary/50"
-                    value={longDescription}
-                    onChange={(e) => setLongDescription(e.target.value)}
-                  />
-                </label>
+                  <div className="bg-background rounded-md mt-1">
+                    <ReactQuill
+                      theme="snow"
+                      value={longDescription}
+                      onChange={setLongDescription}
+                      modules={quillModules}
+                      className="bg-background"
+                    />
+                  </div>
+                </div>
 
                 <label className="flex flex-col gap-2 w-full">
                   <div className="label flex items-center gap-2">
@@ -466,23 +531,12 @@ export default function ProductForm() {
                   {imagePreviews.length > 0 && (
                     <div className="grid grid-cols-4 gap-2 mt-2">
                       {imagePreviews.map((src, i) => (
-                        <div
+                        <AsyncImagePreview
                           key={i}
-                          className="relative bg-background border border-border rounded overflow-hidden h-24"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => removeImagePreview(i)}
-                            className="inline-flex items-center justify-center rounded-full text-xs h-6 w-6 absolute top-1 right-1 z-10 bg-muted hover:bg-accent"
-                            aria-label={`Remove image ${i + 1}`}
-                          >
-                            ×
-                          </button>
-                          <img
-                            src={src}
-                            className="object-cover h-full w-full"
-                          />
-                        </div>
+                          src={src}
+                          index={i}
+                          onRemove={removeImagePreview}
+                        />
                       ))}
                     </div>
                   )}
@@ -510,6 +564,7 @@ export default function ProductForm() {
                       label={t("products.sell_price_net")}
                       value={sellPriceNet}
                       onChange={setSellPriceNet}
+                      required
                     />
                   </div>
                   <div className="w-24">
@@ -517,6 +572,7 @@ export default function ProductForm() {
                       label={t("products.currency")}
                       value={currency}
                       onChange={setCurrency}
+                      required
                     />
                   </div>
                 </div>
@@ -525,6 +581,7 @@ export default function ProductForm() {
                   label={t("products.purchase_price_net")}
                   value={purchasePriceNet}
                   onChange={setPurchasePriceNet}
+                  showOptional
                 />
 
                 <div className="p-4 bg-muted/50 rounded-lg space-y-2 mt-2">
@@ -563,11 +620,12 @@ export default function ProductForm() {
                   label={t("products.unit")}
                   value={unit}
                   onChange={setUnit}
+                  required
                 />
               </div>
 
               <div className="w-full h-px bg-border my-4 relative">
-                <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-background px-2 text-sm text-muted-foreground">
+                <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-background px-2 text-sm text-muted-foreground whitespace-nowrap">
                   {t("products.dimensions_weight")}
                 </span>
               </div>
@@ -577,11 +635,13 @@ export default function ProductForm() {
                   label={t("products.weight_net")}
                   value={weightNet}
                   onChange={setWeightNet}
+                  showOptional
                 />
                 <InputField
                   label={t("products.weight_gross")}
                   value={weightGross}
                   onChange={setWeightGross}
+                  showOptional
                 />
               </div>
               <div className="grid grid-cols-3 gap-2 mt-4">
@@ -589,16 +649,19 @@ export default function ProductForm() {
                   label={t("products.length_cm")}
                   value={lengthCm}
                   onChange={setLengthCm}
+                  showOptional
                 />
                 <InputField
                   label={t("products.width_cm")}
                   value={widthCm}
                   onChange={setWidthCm}
+                  showOptional
                 />
                 <InputField
                   label={t("products.height_cm")}
                   value={heightCm}
                   onChange={setHeightCm}
+                  showOptional
                 />
               </div>
             </CardContent>
@@ -619,6 +682,7 @@ export default function ProductForm() {
                     label={t("products.vat_rate_pct")}
                     value={vatRate}
                     onChange={setVatRate}
+                    required
                   />
                 </div>
                 <InputField
@@ -626,24 +690,21 @@ export default function ProductForm() {
                   value={cnCode}
                   onChange={setCnCode}
                   info={t("products.cn_code_tooltip")}
+                  showOptional
                 />
                 <InputField
                   label={t("products.pkwiu")}
                   value={pkwiu}
                   onChange={setPkwiu}
                   info={t("products.pkwiu_tooltip")}
+                  showOptional
                 />
                 <InputField
                   label={t("products.gtu_code")}
                   value={gtuCode}
                   onChange={setGtuCode}
                   info={t("products.gtu_code_tooltip")}
-                />
-                <InputField
-                  label={t("products.ksef_proc")}
-                  value={ksefProcedure}
-                  onChange={setKsefProcedure}
-                  info={t("products.ksef_proc_tooltip")}
+                  showOptional
                 />
               </div>
             </CardContent>
@@ -657,70 +718,44 @@ export default function ProductForm() {
               </CardHeader>
 
               <div className="space-y-4">
-                <div className="flex flex-col gap-2">
-                  <label className="label cursor-pointer justify-start gap-4">
-                    <input
-                      type="checkbox"
-                      className="peer h-5 w-9 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input"
-                      checked={isService}
-                      onChange={(e) => setIsService(e.target.checked)}
-                    />
-                    <span className="label-text flex items-center gap-2">
-                      {t("products.is_service")}
-                      <span
-                        className="text-[10px] text-muted-foreground rounded-full w-4 h-4 flex items-center justify-center bg-muted border border-border cursor-help"
-                        title={t("products.is_service_tooltip")}
-                      >
-                        ?
-                      </span>
-                    </span>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="has_expiry_date"
+                    checked={hasExpiryDate}
+                    onCheckedChange={(checked: boolean) => {
+                      setHasExpiryDate(!!checked);
+                      if (!checked) setExpiryDate(null);
+                    }}
+                  />
+                  <label
+                    htmlFor="has_expiry_date"
+                    className="text-sm font-medium leading-none"
+                  >
+                    {t("products.has_expiry_date")}
                   </label>
                 </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="label cursor-pointer justify-start gap-4">
-                    <input
-                      type="checkbox"
-                      className="peer h-5 w-9 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-input"
-                      checked={isActive}
-                      onChange={(e) => setIsActive(e.target.checked)}
-                    />
-                    <span className="label-text">
-                      {t("products.is_active")}
-                    </span>
-                  </label>
-                </div>
-
                 <InputField
                   type="date"
                   label={t("products.expiry_date")}
                   value={expiryDate ?? ""}
                   onChange={(v) => setExpiryDate(v || null)}
+                  showOptional
+                  disabled={!hasExpiryDate}
                 />
+
                 <InputField
                   label={t("products.lot_number")}
                   value={lotNumber}
                   onChange={setLotNumber}
                   info={t("products.lot_number_tooltip")}
+                  showOptional
                 />
                 <InputField
                   label={t("products.country_of_origin")}
                   value={countryOfOrigin}
                   onChange={setCountryOfOrigin}
+                  showOptional
                 />
-
-                <label className="flex flex-col gap-2 w-full">
-                  <div className="label">
-                    <span className="label-text font-medium text-muted-foreground">
-                      {t("products.custom_attributes")}
-                    </span>
-                  </div>
-                  <Textarea
-                    className=" h-24 w-full font-mono text-sm focus:outline-none focus:border-primary/50"
-                    value={attributesJson}
-                    onChange={(e) => setAttributesJson(e.target.value)}
-                  />
-                </label>
               </div>
             </CardContent>
           </Card>

@@ -80,6 +80,7 @@ diesel::table! {
         ean -> Nullable<Text>,
         name -> Text,
         description -> Nullable<Text>,
+        short_description -> Nullable<Text>,
         category -> Nullable<Text>,
         brand -> Nullable<Text>,
         model -> Nullable<Text>,

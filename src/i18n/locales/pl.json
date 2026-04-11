@@ -20,7 +20,8 @@
     "application": "Aplikacja",
     "account": "Konto",
     "log_out": "Wyloguj się",
-    "administrator": "Administrator"
+    "administrator": "Administrator",
+    "optional": "opcjonalnie"
   },
   "nav": {
     "dashboard": "Pulpit",
@@ -120,8 +121,8 @@
     "ean_tooltip": "Europejski Numer Artykułu / Globalny Numer Jednostki Handlowej (np. kod kreskowy z opakowania).",
     "descriptions_media": "Opisy i media",
     "short_description": "Krótki opis",
-    "long_description": "Długi opis (Markdown)",
-    "long_desc_tooltip": "Obsługuje formatowanie Markdown (pogrubienia, listy, itp.)",
+    "long_description": "Długi opis",
+    "long_desc_tooltip": "Szczegółowy opis produktu.",
     "images": "Zdjęcia",
     "images_tooltip": "Możesz wybrać wiele plików graficznych naraz.",
     "pricing": "Cennik",
@@ -147,11 +148,16 @@
     "ksef_proc": "Procedura KSeF",
     "ksef_proc_tooltip": "Zastosowana procedura dla Krajowego Systemu e-Faktur.",
     "expiry_date": "Data ważności",
+    "has_expiry_date": "Posiada datę ważności",
     "lot_number": "Numer partii",
     "lot_number_tooltip": "Numer partii produkcyjnej (przydatny m.in. przy gwarancjach).",
     "country_of_origin": "Kraj pochodzenia",
     "form_description": "Wypełnij poniższe dane, aby skonfigurować produkt. Wymagane pola są oznaczone.",
-    "custom_attributes": "Niestandardowe atrybuty (JSON)"
+    "custom_attributes": "Niestandardowe atrybuty (JSON)",
+    "type_product": "Towar",
+    "type_product_desc": "Fizyczne przedmioty podlegające kontroli magazynowej.",
+    "type_service": "Usługa",
+    "type_service_desc": "Niematerialne usługi, bez kontroli stanów magazynowych."
   },
   "invoices": {
     "title": "Faktury",
