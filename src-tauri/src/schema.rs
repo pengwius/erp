@@ -1,8 +1,5 @@
 /*
     @generated automatically by Diesel CLI.
-
-    Extended schema for products to support ecommerce, inventory and metadata fields.
-    Compatible with Diesel's `64-column-tables` feature.
 */
 
 diesel::table! {
@@ -17,6 +14,23 @@ diesel::table! {
         created_at -> Timestamp,
         ksef_connected -> Bool,
         ksef_metadata -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
+    customers (id) {
+        id -> Integer,
+        company_id -> Integer,
+        name -> Text,
+        nip -> Nullable<Text>,
+        street -> Nullable<Text>,
+        city -> Nullable<Text>,
+        postal_code -> Nullable<Text>,
+        country -> Nullable<Text>,
+        email -> Nullable<Text>,
+        phone -> Nullable<Text>,
+        created_at -> Text,
+        updated_at -> Nullable<Text>,
     }
 }
 
@@ -125,6 +139,7 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(customers -> companies (company_id));
 diesel::joinable!(invoices -> companies (issuer_company_id));
 diesel::joinable!(invoice_lines -> invoices (invoice_id));
 diesel::joinable!(products -> companies (company_id));
@@ -132,6 +147,7 @@ diesel::joinable!(product_prices -> products (product_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     companies,
+    customers,
     invoices,
     invoice_lines,
     products,

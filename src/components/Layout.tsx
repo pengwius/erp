@@ -63,6 +63,11 @@ const menuItems = [
     icon: FileText,
   },
   {
+    name: "nav.customers",
+    path: "/customers",
+    icon: User,
+  },
+  {
     name: "nav.products",
     path: "/products",
     icon: ScanBarcode,
