@@ -1,4 +1,9 @@
-// @generated automatically by Diesel CLI.
+/*
+    @generated automatically by Diesel CLI.
+
+    Extended schema for products to support ecommerce, inventory and metadata fields.
+    Compatible with Diesel's `64-column-tables` feature.
+*/
 
 diesel::table! {
     companies (id) {
@@ -67,11 +72,68 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    products (id) {
+        id -> Integer,
+        company_id -> Integer,
+        sku -> Nullable<Text>,
+        ean -> Nullable<Text>,
+        name -> Text,
+        description -> Nullable<Text>,
+        short_description -> Nullable<Text>,
+        category -> Nullable<Text>,
+        brand -> Nullable<Text>,
+        model -> Nullable<Text>,
+        unit -> Nullable<Text>,
+        vat_rate -> Nullable<Text>,
+        cn_code -> Nullable<Text>,
+        pkwiu -> Nullable<Text>,
+        gtu_code -> Nullable<Text>,
+        ksef_procedure -> Nullable<Text>,
+        purchase_price_net -> Nullable<Text>,
+        sale_price_net -> Nullable<Text>,
+        currency -> Nullable<Text>,
+        min_stock -> Nullable<Text>,
+        stock -> Nullable<Text>,
+        is_service -> Integer,
+        is_active -> Integer,
+        location -> Nullable<Text>,
+        weight_net -> Nullable<Text>,
+        weight_gross -> Nullable<Text>,
+        length -> Nullable<Text>,
+        width -> Nullable<Text>,
+        height -> Nullable<Text>,
+        images -> Nullable<Text>,
+        attributes -> Nullable<Text>,
+        expiry_date -> Nullable<Text>,
+        lot_number -> Nullable<Text>,
+        country_of_origin -> Nullable<Text>,
+        created_at -> Text,
+        updated_at -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
+    product_prices (id) {
+        id -> Integer,
+        product_id -> Integer,
+        currency -> Text,
+        price -> Text,
+        valid_from -> Text,
+        valid_to -> Nullable<Text>,
+        created_at -> Text,
+    }
+}
+
 diesel::joinable!(invoices -> companies (issuer_company_id));
 diesel::joinable!(invoice_lines -> invoices (invoice_id));
+diesel::joinable!(products -> companies (company_id));
+diesel::joinable!(product_prices -> products (product_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     companies,
     invoices,
     invoice_lines,
+    products,
+    product_prices,
 );

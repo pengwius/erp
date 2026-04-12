@@ -1,4 +1,3 @@
--- up.sql
 CREATE TABLE invoices (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   issuer_company_id INTEGER NOT NULL,
@@ -10,7 +9,6 @@ CREATE TABLE invoices (
   sale_date TEXT,
   due_date TEXT,
   currency TEXT NOT NULL,
-  -- Seller snapshot
   seller_name TEXT NOT NULL,
   seller_nip TEXT,
   seller_country TEXT,
@@ -19,7 +17,6 @@ CREATE TABLE invoices (
   seller_flat_number TEXT,
   seller_city TEXT,
   seller_postal_code TEXT,
-  -- Buyer snapshot
   buyer_name TEXT NOT NULL,
   buyer_nip TEXT,
   buyer_country TEXT,
@@ -28,7 +25,6 @@ CREATE TABLE invoices (
   buyer_flat_number TEXT,
   buyer_city TEXT,
   buyer_postal_code TEXT,
-  -- Totals
   net_amount TEXT,
   tax_amount TEXT,
   gross_amount TEXT,

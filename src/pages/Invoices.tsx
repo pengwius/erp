@@ -1,5 +1,16 @@
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "react-i18next";
 import InputField from "../components/InputField";
 import SoftPrimaryButton, { GhostButton } from "../components/PrimaryButton";
 
@@ -24,6 +35,7 @@ type Company = {
 };
 
 export const Invoices: React.FC = () => {
+  const { t } = useTranslation();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -85,11 +97,11 @@ export const Invoices: React.FC = () => {
   async function handleCreateInvoice() {
     setError(null);
     if (!issuerCompanyId) {
-      setError("Choose issuer company");
+      setError(t("invoices.choose_issuer"));
       return;
     }
     if (!invoiceNumber.trim()) {
-      setError("Invoice number is required");
+      setError(t("invoices.invoice_number_required"));
       return;
     }
 
@@ -192,17 +204,19 @@ export const Invoices: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Invoices</h1>
+        <h1 className="text-2xl font-semibold">{t("invoices.title")}</h1>
         <div className="flex items-center gap-3">
-          <GhostButton onClick={() => loadInvoices()}>Refresh</GhostButton>
+          <GhostButton onClick={() => loadInvoices()}>
+            {t("invoices.refresh")}
+          </GhostButton>
           <SoftPrimaryButton onClick={() => setShowCreate(true)}>
-            New Invoice
+            {t("invoices.new_invoice")}
           </SoftPrimaryButton>
         </div>
       </div>
 
       {error && (
-        <div className="alert alert-error">
+        <div className="bg-destructive/15 text-destructive p-4 rounded-md mb-6">
           <div className="flex-1">
             <label>{error}</label>
           </div>
@@ -210,18 +224,20 @@ export const Invoices: React.FC = () => {
       )}
 
       {showCreate && (
-        <div className="card bg-base-200 p-4">
+        <Card className="p-4 bg-muted/50 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="label">
-                <span className="label-text">Issuer company</span>
+                <span className="label-text">
+                  {t("invoices.issuer_company")}
+                </span>
               </label>
               <select
-                className="select select-bordered w-full"
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={issuerCompanyId ?? ""}
                 onChange={(e) => setIssuerCompanyId(Number(e.target.value))}
               >
-                <option value="">Select issuer</option>
+                <option value="">{t("invoices.select_issuer")}</option>
                 {companies.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -231,7 +247,7 @@ export const Invoices: React.FC = () => {
             </div>
 
             <InputField
-              label="Invoice number"
+              label={t("invoices.invoice_number")}
               value={invoiceNumber}
               onChange={setInvoiceNumber}
               placeholder="FV/2026/0001"
@@ -239,80 +255,80 @@ export const Invoices: React.FC = () => {
             />
 
             <InputField
-              label="Issue date"
+              label={t("invoices.issue_date")}
               value={issueDate}
               onChange={setIssueDate}
               placeholder="YYYY-MM-DD"
             />
             <InputField
-              label="Currency"
+              label={t("invoices.currency")}
               value={currency}
               onChange={setCurrency}
             />
 
             <InputField
-              label="Seller name"
+              label={t("invoices.seller_name")}
               value={sellerName}
               onChange={setSellerName}
             />
             <InputField
-              label="Seller NIP"
+              label={t("invoices.seller_nip")}
               value={sellerNip}
               onChange={setSellerNip}
             />
             <InputField
-              label="Seller street"
+              label={t("invoices.seller_street")}
               value={sellerStreet}
               onChange={setSellerStreet}
             />
             <InputField
-              label="Seller building number"
+              label={t("invoices.seller_building_number")}
               value={sellerBuildingNumber}
               onChange={setSellerBuildingNumber}
             />
             <InputField
-              label="Seller city"
+              label={t("invoices.seller_city")}
               value={sellerCity}
               onChange={setSellerCity}
             />
             <InputField
-              label="Seller postal code"
+              label={t("invoices.seller_postal_code")}
               value={sellerPostalCode}
               onChange={setSellerPostalCode}
             />
 
             <InputField
-              label="Buyer name"
+              label={t("invoices.buyer_name")}
               value={buyerName}
               onChange={setBuyerName}
             />
             <InputField
-              label="Buyer NIP"
+              label={t("invoices.buyer_nip")}
               value={buyerNip}
               onChange={setBuyerNip}
             />
           </div>
 
           <div className="pt-4">
-            <h3 className="font-medium">Line (single, add more later)</h3>
+            <h3 className="font-medium">{t("invoices.line_title")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-2 pt-2">
               <InputField
-                label="Name"
+                label={t("invoices.line_name")}
                 value={lineName}
                 onChange={setLineName}
               />
               <InputField
-                label="Quantity"
+                label={t("invoices.line_quantity")}
                 value={lineQuantity}
                 onChange={setLineQuantity}
               />
               <InputField
-                label="Net price"
+                label={t("invoices.line_net_price")}
                 value={lineNetPrice}
                 onChange={setLineNetPrice}
               />
               <InputField
-                label="Tax rate"
+                label={t("invoices.line_tax_rate")}
                 value={lineTaxRate}
                 onChange={setLineTaxRate}
               />
@@ -326,67 +342,71 @@ export const Invoices: React.FC = () => {
                 resetForm();
               }}
             >
-              Cancel
+              {t("common.cancel")}
             </GhostButton>
             <SoftPrimaryButton
               onClick={handleCreateInvoice}
               disabled={submitting}
               iconPosition="right"
             >
-              {submitting ? "Creating..." : "Create invoice"}
+              {submitting
+                ? t("invoices.creating")
+                : t("invoices.create_invoice")}
             </SoftPrimaryButton>
           </div>
-        </div>
+        </Card>
       )}
 
-      <div className="card bg-base-100 p-4">
+      <Card className="p-4">
         <div className="overflow-x-auto">
-          <table className="table w-full">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Number</th>
-                <th>Issue date</th>
-                <th>Seller</th>
-                <th>Buyer</th>
-                <th>Gross</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("invoices.id")}</TableHead>
+                <TableHead>{t("invoices.number")}</TableHead>
+                <TableHead>{t("invoices.issue_date")}</TableHead>
+                <TableHead>{t("invoices.seller")}</TableHead>
+                <TableHead>{t("invoices.buyer")}</TableHead>
+                <TableHead>{t("invoices.gross")}</TableHead>
+                <TableHead>{t("common.actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-6">
-                    Loading...
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-6">
+                    {t("common.loading")}
+                  </TableCell>
+                </TableRow>
               ) : invoices.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-6">
-                    No invoices yet.
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-6">
+                    {t("invoices.no_invoices")}
+                  </TableCell>
+                </TableRow>
               ) : (
                 invoices.map((inv) => (
-                  <tr key={inv.id}>
-                    <td>{inv.id}</td>
-                    <td>{inv.invoice_number}</td>
-                    <td>{inv.issue_date}</td>
-                    <td>{inv.seller_name}</td>
-                    <td>{inv.buyer_name}</td>
-                    <td>{inv.gross_amount ?? "-"}</td>
-                    <td>
+                  <TableRow key={inv.id}>
+                    <TableCell>{inv.id}</TableCell>
+                    <TableCell>{inv.invoice_number}</TableCell>
+                    <TableCell>{inv.issue_date}</TableCell>
+                    <TableCell>{inv.seller_name}</TableCell>
+                    <TableCell>{inv.buyer_name}</TableCell>
+                    <TableCell>{inv.gross_amount ?? "-"}</TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-2">
-                        <button
-                          className="btn btn-ghost btn-sm"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => {
                             handleGenerateXml(inv);
                           }}
                         >
                           XML
-                        </button>
-                        <button
-                          className="btn btn-outline btn-sm"
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={async () => {
                             try {
                               const full = await invoke("cmd_get_invoice", {
@@ -399,17 +419,17 @@ export const Invoices: React.FC = () => {
                             }
                           }}
                         >
-                          View
-                        </button>
+                          {t("invoices.view")}
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

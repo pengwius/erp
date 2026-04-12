@@ -1091,6 +1091,7 @@ name = "erp"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64 0.21.7",
  "chrono",
  "diesel",
  "diesel_migrations",
@@ -1104,6 +1105,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-opener",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

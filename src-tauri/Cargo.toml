@@ -18,10 +18,15 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# For handling base64-encoded uploads from the frontend
+base64 = "0.21"
+# UUIDs for unique filenames when storing images alongside the database
+uuid = { version = "1", features = ["v4", "serde"] }
+
 anyhow = "1"
 once_cell = "1"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
-diesel = { version = "2.3.7", features = ["sqlite", "r2d2", "chrono", "returning_clauses_for_sqlite_3_35"] }
+diesel = { version = "2.3.7", features = ["sqlite", "r2d2", "chrono", "returning_clauses_for_sqlite_3_35", "64-column-tables"] }
 diesel_migrations = { version = "2.3.1", features = ["sqlite"] }
 chrono = { version = "0.4.44", features = ["serde"] }
 libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
