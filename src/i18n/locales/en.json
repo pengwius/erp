@@ -26,6 +26,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "invoices": "Invoices",
+    "customers": "Customers",
     "products": "Products",
     "settings": "Settings",
     "company": "Company",
@@ -75,6 +76,23 @@
     "add_company": "Add Company",
     "edit_company": "Edit Company Details",
     "no_companies": "No companies defined. Add your first company."
+  },
+  "customers": {
+    "title": "Customers",
+    "new_customer": "New customer",
+    "edit_customer": "Edit customer",
+    "no_customers": "No customers in the database.",
+    "add_customer": "Add customer",
+    "name": "Name",
+    "nip": "VAT ID / NIP",
+    "email": "Email",
+    "phone": "Phone",
+    "street": "Street",
+    "city": "City",
+    "postal_code": "Postal code",
+    "country": "Country",
+    "save": "Save customer",
+    "form_description": "Fill in the customer details."
   },
   "products": {
     "title": "Products",

@@ -2,6 +2,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { Layout } from "./components/Layout";
+import Customers from "./pages/Customers";
+import CustomerForm from "./pages/customers/CustomerForm";
 import { Dashboard } from "./pages/Dashboard";
 import { Invoices } from "./pages/Invoices";
 import Products from "./pages/Products";
@@ -23,6 +25,11 @@ export default function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="invoices" element={<Invoices />} />
+              <Route path="customers">
+                <Route index element={<Customers />} />
+                <Route path="new" element={<CustomerForm />} />
+                <Route path=":id/edit" element={<CustomerForm />} />
+              </Route>
               <Route path="products">
                 <Route index element={<Products />} />
                 <Route path="new" element={<ProductTypeSelection />} />

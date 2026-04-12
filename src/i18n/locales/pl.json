@@ -26,6 +26,7 @@
   "nav": {
     "dashboard": "Pulpit",
     "invoices": "Faktury",
+    "customers": "Klienci",
     "products": "Produkty",
     "settings": "Ustawienia",
     "company": "Firma",
@@ -75,6 +76,23 @@
     "add_company": "Dodaj firmę",
     "edit_company": "Edytuj dane firmy",
     "no_companies": "Brak zdefiniowanych firm. Dodaj pierwszą firmę."
+  },
+  "customers": {
+    "title": "Klienci",
+    "new_customer": "Nowy klient",
+    "edit_customer": "Edytuj klienta",
+    "no_customers": "Brak klientów w bazie.",
+    "add_customer": "Dodaj klienta",
+    "name": "Nazwa",
+    "nip": "NIP",
+    "email": "E-mail",
+    "phone": "Telefon",
+    "street": "Ulica",
+    "city": "Miasto",
+    "postal_code": "Kod pocztowy",
+    "country": "Kraj",
+    "save": "Zapisz klienta",
+    "form_description": "Wypełnij dane klienta."
   },
   "products": {
     "title": "Produkty",

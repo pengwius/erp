@@ -3,6 +3,7 @@ pub mod db;
 pub mod schema;
 pub mod invoice;
 pub mod product;
+pub mod customer;
 
 use diesel::SqliteConnection;
 use diesel::RunQueryDsl;
@@ -82,7 +83,7 @@ struct UpdateInvoiceNumberPayload {
     pub new_number: String,
 }
 
-#[tauri::command]
+// #[tauri::command]
 async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice::Invoice, String> {
     use std::str::FromStr;
     run_db_task(move |conn| {
@@ -191,22 +192,22 @@ async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice::In
     .await
 }
 
-#[tauri::command]
+// #[tauri::command]
 async fn cmd_get_invoice(id: i32) -> Result<(invoice::Invoice, Vec<invoice::InvoiceLine>), String> {
     run_db_task(move |conn| invoice::fetch_invoice_by_id(conn, id).map_err(|e| e.to_string())).await
 }
 
-#[tauri::command]
+// #[tauri::command]
 async fn cmd_list_invoices(limit: i64) -> Result<Vec<invoice::Invoice>, String> {
     run_db_task(move |conn| invoice::list_invoices(conn, limit).map_err(|e| e.to_string())).await
 }
 
-#[tauri::command]
+// #[tauri::command]
 async fn cmd_generate_invoice_xml(id: i32) -> Result<String, String> {
     run_db_task(move |conn| invoice::generate_fa3_xml(conn, id).map_err(|e| e.to_string())).await
 }
 
-#[tauri::command]
+// #[tauri::command]
 async fn cmd_update_invoice_number(payload: UpdateInvoiceNumberPayload) -> Result<invoice::Invoice, String> {
     run_db_task(move |conn| invoice::update_invoice_number(conn, payload.invoice_id, payload.issuer_company_id, &payload.new_number).map_err(|e| e.to_string())).await
 }
@@ -326,6 +327,11 @@ pub fn run() {
             commands::product::cmd_create_product_price,
             commands::product::cmd_list_product_prices,
             commands::product::cmd_get_current_price,
+            commands::customer::cmd_create_customer,
+            commands::customer::cmd_update_customer,
+            commands::customer::cmd_delete_customer,
+            commands::customer::cmd_get_customer,
+            commands::customer::cmd_list_customers,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
