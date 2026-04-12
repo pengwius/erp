@@ -18,6 +18,7 @@ import SoftPrimaryButton, { GhostButton } from "../components/PrimaryButton";
 type Product = {
   id: number;
   company_id: number;
+  is_service?: number | boolean;
   sku?: string | null;
   name: string;
   description?: string | null;
@@ -110,7 +111,12 @@ export default function Products() {
   }
 
   function handleEdit(productId: number) {
-    navigate(`/products/${productId}/edit`);
+    const p = products.find((x) => x.id === productId);
+    if (p?.is_service) {
+      navigate(`/products/${productId}/edit/service`);
+    } else {
+      navigate(`/products/${productId}/edit`);
+    }
   }
 
   async function handleSubmit() {
@@ -323,7 +329,20 @@ export default function Products() {
                   <TableRow key={p.id}>
                     <TableCell>{p.id}</TableCell>
                     <TableCell>{p.sku ?? "-"}</TableCell>
-                    <TableCell>{p.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{p.name}</span>
+                        {p.is_service ? (
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-100/80 text-indigo-700 text-[10px] uppercase tracking-wider dark:bg-indigo-900/30 dark:text-indigo-400">
+                            {t("products.type_service")}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] uppercase tracking-wider dark:bg-slate-800 dark:text-slate-400">
+                            {t("products.type_product")}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{p.unit ?? "-"}</TableCell>
                     <TableCell>{p.vat_rate ?? "-"}</TableCell>
                     <TableCell>{p.created_at ?? "-"}</TableCell>

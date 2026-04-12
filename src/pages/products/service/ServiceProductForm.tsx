@@ -14,13 +14,13 @@ import "react-quill-new/dist/quill.snow.css";
 type ServicePayload = {
   company_id: number;
   sku?: string | null;
-  ean?: string | null;
   name: string;
   category?: string | null;
-  brand?: string | null;
-  model?: string | null;
 
   vat_rate?: string | null;
+  pkwiu?: string | null;
+  gtu_code?: string | null;
+  purchase_price_net?: string | null;
   sale_price_net?: string | null;
   sell_price_gross?: string | null;
   currency?: string | null;
@@ -33,6 +33,7 @@ type ServicePayload = {
   is_service?: number | boolean;
   is_active?: number | boolean;
   expiry_date?: string | null;
+  attributes?: Record<string, any> | null;
 };
 
 export default function ServiceProductForm() {
@@ -45,18 +46,22 @@ export default function ServiceProductForm() {
 
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
-  const [ean, setEan] = useState("");
   const [category, setCategory] = useState("");
-  const [brand, setBrand] = useState("");
-  const [model, setModel] = useState("");
 
   const [vatRate, setVatRate] = useState("23");
+  const [pkwiu, setPkwiu] = useState("");
+  const [gtuCode, setGtuCode] = useState("");
   const [sellPriceNet, setSellPriceNet] = useState("0.00");
+  const [purchasePriceNet, setPurchasePriceNet] = useState("0.00");
   const [currency, setCurrency] = useState("PLN");
-  const [unit, setUnit] = useState("h"); // default unit for services (hours)
+  const [unit, setUnit] = useState("h");
 
   const [shortDescription, setShortDescription] = useState("");
   const [longDescription, setLongDescription] = useState("");
+
+  const [isSubscription, setIsSubscription] = useState(false);
+  const [billingCycle, setBillingCycle] = useState("");
+  const [duration, setDuration] = useState("");
 
   const [hasExpiryDate, setHasExpiryDate] = useState(false);
   const [expiryDate, setExpiryDate] = useState<string | null>(null);
@@ -111,12 +116,12 @@ export default function ServiceProductForm() {
       if (!p) return;
       setName(p.name || "");
       setSku(p.sku || "");
-      setEan(p.ean || "");
       setCategory(p.category || "");
-      setBrand(p.brand || "");
-      setModel(p.model || "");
       setVatRate(p.vat_rate || "23");
+      setPkwiu(p.pkwiu || "");
+      setGtuCode(p.gtu_code || "");
       setSellPriceNet(p.sale_price_net || "0.00");
+      setPurchasePriceNet(p.purchase_price_net || "0.00");
       setCurrency(p.currency || "PLN");
       setUnit(p.unit || "h");
       setShortDescription(p.short_description || "");
@@ -124,6 +129,19 @@ export default function ServiceProductForm() {
       setHasExpiryDate(!!p.expiry_date);
       setExpiryDate(p.expiry_date || null);
       setCompanyId(p.company_id ?? companyId);
+
+      let attrs: any = {};
+      if (p.attributes) {
+        try {
+          attrs =
+            typeof p.attributes === "string"
+              ? JSON.parse(p.attributes)
+              : p.attributes;
+        } catch {}
+      }
+      setIsSubscription(!!attrs.is_subscription);
+      setBillingCycle(attrs.billing_cycle || "");
+      setDuration(attrs.duration || "");
     } catch (e) {
       console.error("Failed to load service", e);
       setError(String(e));
@@ -149,12 +167,12 @@ export default function ServiceProductForm() {
     const payload: ServicePayload = {
       company_id: companyId,
       sku: sku || null,
-      ean: ean || null,
       name: name.trim(),
       category: category || null,
-      brand: brand || null,
-      model: model || null,
       vat_rate: vatRate || null,
+      pkwiu: pkwiu || null,
+      gtu_code: gtuCode || null,
+      purchase_price_net: purchasePriceNet || null,
       sale_price_net: sellPriceNet || null,
       sell_price_gross: sellPriceGross || null,
       currency: currency || null,
@@ -164,6 +182,11 @@ export default function ServiceProductForm() {
       is_service: 1,
       is_active: 1,
       expiry_date: hasExpiryDate ? expiryDate || null : null,
+      attributes: {
+        is_subscription: isSubscription,
+        billing_cycle: isSubscription ? billingCycle : null,
+        duration: duration || null,
+      },
     };
 
     setSaving(true);
@@ -207,14 +230,14 @@ export default function ServiceProductForm() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-6 space-y-6 px-4">
+    <div className="max-w-7xl mx-auto py-6 space-y-8 px-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {editingId ? t("products.edit_product") : t("products.new_product")}
+            {editingId ? t("products.edit_service") : t("products.new_service")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("products.form_description")}
+            {t("products.service_form_description")}
           </p>
         </div>
 
@@ -224,7 +247,7 @@ export default function ServiceProductForm() {
           </GhostButton>
           <SoftPrimaryButton onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {saving ? t("common.saving") : t("products.save_product")}
+            {saving ? t("common.saving") : t("products.save_service")}
           </SoftPrimaryButton>
         </div>
       </div>
@@ -243,167 +266,239 @@ export default function ServiceProductForm() {
         </div>
       )}
 
-      <Card>
-        <CardContent className="p-6">
-          <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-            <CardTitle className="text-lg">
-              {t("products.basic_information")}
-            </CardTitle>
-          </CardHeader>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Basic Info */}
+          <Card>
+            <CardContent className="p-6">
+              <CardHeader className="p-0 mb-4 border-b border-border pb-2">
+                <CardTitle className="text-lg">
+                  {t("products.basic_information")}
+                </CardTitle>
+              </CardHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <InputField
-                label={t("products.name")}
-                value={name}
-                onChange={setName}
-                required
-              />
-            </div>
-            <InputField
-              label={t("products.sku_internal")}
-              value={sku}
-              onChange={setSku}
-              info={t("products.sku_tooltip")}
-              showOptional
-            />
-            <InputField
-              label={t("products.ean_gtin")}
-              value={ean}
-              onChange={setEan}
-              info={t("products.ean_tooltip")}
-              showOptional
-            />
-            <InputField
-              label={t("products.category_group")}
-              value={category}
-              onChange={setCategory}
-              info={t("products.category_tooltip")}
-              showOptional
-            />
-            <InputField
-              label={t("products.brand_manufacturer")}
-              value={brand}
-              onChange={setBrand}
-              showOptional
-            />
-            <InputField
-              label={t("products.model")}
-              value={model}
-              onChange={setModel}
-              showOptional
-            />
-          </div>
-        </CardContent>
-      </Card>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <InputField
+                    label={t("products.name")}
+                    value={name}
+                    onChange={setName}
+                    required
+                  />
+                </div>
+                <InputField
+                  label={t("products.sku_internal")}
+                  value={sku}
+                  onChange={setSku}
+                  info={t("products.sku_tooltip")}
+                  showOptional
+                />
+                <InputField
+                  label={t("products.category_group")}
+                  value={category}
+                  onChange={setCategory}
+                  info={t("products.category_tooltip")}
+                  showOptional
+                />
+                <InputField
+                  label={t("products.unit")}
+                  value={unit}
+                  onChange={setUnit}
+                  required
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardContent className="p-6">
-          <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-            <CardTitle className="text-lg">{t("products.pricing")}</CardTitle>
-          </CardHeader>
+          {/* Descriptions */}
+          <Card>
+            <CardContent className="p-6">
+              <CardHeader className="p-0 mb-4 border-b border-border pb-2">
+                <CardTitle className="text-lg">
+                  {t("products.descriptions_media")}
+                </CardTitle>
+              </CardHeader>
 
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
+              <div className="space-y-4">
+                <InputField
+                  label={t("products.short_description")}
+                  value={shortDescription}
+                  onChange={setShortDescription}
+                  showOptional
+                />
+                <div className="flex flex-col gap-2 w-full">
+                  <span className="label-text font-medium text-foreground">
+                    {t("products.long_description")}
+                  </span>
+                  <div className="bg-background rounded-md mt-1">
+                    <ReactQuill
+                      theme="snow"
+                      value={longDescription}
+                      onChange={setLongDescription}
+                      modules={quillModules}
+                      className="bg-background"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-8">
+          {/* Pricing */}
+          <Card>
+            <CardContent className="p-6">
+              <CardHeader className="p-0 mb-4 border-b border-border pb-2">
+                <CardTitle className="text-lg">
+                  {t("products.pricing")}
+                </CardTitle>
+              </CardHeader>
+
+              <div className="space-y-4">
                 <InputField
                   label={t("products.sell_price_net")}
                   value={sellPriceNet}
                   onChange={setSellPriceNet}
                   required
                 />
-              </div>
-              <div className="w-28">
                 <InputField
-                  label={t("products.currency")}
-                  value={currency}
-                  onChange={setCurrency}
-                  required
+                  label={t("products.internal_cost")}
+                  value={purchasePriceNet}
+                  onChange={setPurchasePriceNet}
+                  info={t("products.internal_cost_tooltip")}
+                  showOptional
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField
+                    label={t("products.vat_rate_pct")}
+                    value={vatRate}
+                    onChange={setVatRate}
+                    required
+                  />
+                  <InputField
+                    label={t("products.currency")}
+                    value={currency}
+                    onChange={setCurrency}
+                    required
+                  />
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg space-y-2 mt-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {t("products.sell_price_gross")}
+                    </span>
+                    <span className="font-medium">
+                      {sellPriceGross} {currency}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Service Parameters */}
+          <Card>
+            <CardContent className="p-6">
+              <CardHeader className="p-0 mb-4 border-b border-border pb-2">
+                <CardTitle className="text-lg">
+                  {t("products.type_service")}
+                </CardTitle>
+              </CardHeader>
+
+              <div className="space-y-4">
+                <InputField
+                  label={t("products.duration")}
+                  value={duration}
+                  onChange={setDuration}
+                  info={t("products.duration_tooltip")}
+                  showOptional
+                />
+
+                <div className="flex items-center space-x-2 pt-2">
+                  <Checkbox
+                    id="is_subscription"
+                    checked={isSubscription}
+                    onCheckedChange={(checked: boolean) => {
+                      setIsSubscription(!!checked);
+                      if (!checked) setBillingCycle("");
+                    }}
+                  />
+                  <label
+                    htmlFor="is_subscription"
+                    className="text-sm font-medium leading-none"
+                  >
+                    {t("products.is_subscription")}
+                  </label>
+                </div>
+
+                {isSubscription && (
+                  <InputField
+                    label={t("products.billing_cycle")}
+                    value={billingCycle}
+                    onChange={setBillingCycle}
+                    info={t("products.billing_cycle_tooltip")}
+                    required
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Advanced */}
+          <Card>
+            <CardContent className="p-6">
+              <CardHeader className="p-0 mb-4 border-b border-border pb-2">
+                <CardTitle className="text-lg">{t("nav.advanced")}</CardTitle>
+              </CardHeader>
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="has_expiry_date"
+                    checked={hasExpiryDate}
+                    onCheckedChange={(checked: boolean) => {
+                      setHasExpiryDate(!!checked);
+                      if (!checked) setExpiryDate(null);
+                    }}
+                  />
+                  <label
+                    htmlFor="has_expiry_date"
+                    className="text-sm font-medium leading-none"
+                  >
+                    {t("products.has_expiry_date")}
+                  </label>
+                </div>
+                <InputField
+                  type="date"
+                  label={t("products.expiry_date")}
+                  value={expiryDate ?? ""}
+                  onChange={(v) => setExpiryDate(v || null)}
+                  showOptional
+                  disabled={!hasExpiryDate}
+                />
+
+                <InputField
+                  label={t("products.pkwiu")}
+                  value={pkwiu}
+                  onChange={setPkwiu}
+                  info={t("products.pkwiu_tooltip")}
+                  showOptional
+                />
+                <InputField
+                  label={t("products.gtu_code")}
+                  value={gtuCode}
+                  onChange={setGtuCode}
+                  info={t("products.gtu_code_tooltip")}
+                  showOptional
                 />
               </div>
-            </div>
-
-            <div className="p-4 bg-muted/50 rounded-lg space-y-2 mt-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {t("products.sell_price_gross")}
-                </span>
-                <span className="font-medium">
-                  {sellPriceGross} {currency}
-                </span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-6">
-          <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-            <CardTitle className="text-lg">{t("nav.advanced")}</CardTitle>
-          </CardHeader>
-
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="has_expiry_date"
-                checked={hasExpiryDate}
-                onCheckedChange={(checked: boolean) => {
-                  setHasExpiryDate(!!checked);
-                  if (!checked) setExpiryDate(null);
-                }}
-              />
-              <label
-                htmlFor="has_expiry_date"
-                className="text-sm font-medium leading-none"
-              >
-                {t("products.has_expiry_date")}
-              </label>
-            </div>
-            <InputField
-              type="date"
-              label={t("products.expiry_date")}
-              value={expiryDate ?? ""}
-              onChange={(v) => setExpiryDate(v || null)}
-              showOptional
-              disabled={!hasExpiryDate}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-6">
-          <CardHeader className="p-0 mb-4 border-b border-border pb-2">
-            <CardTitle className="text-lg">
-              {t("products.descriptions_media")}
-            </CardTitle>
-          </CardHeader>
-
-          <div className="space-y-4">
-            <InputField
-              label={t("products.short_description")}
-              value={shortDescription}
-              onChange={setShortDescription}
-              showOptional
-            />
-            <div className="flex flex-col gap-2 w-full">
-              <span className="label-text font-medium text-foreground">
-                {t("products.long_description")}
-              </span>
-              <div className="bg-background rounded-md mt-1">
-                <ReactQuill
-                  theme="snow"
-                  value={longDescription}
-                  onChange={setLongDescription}
-                  modules={quillModules}
-                  className="bg-background"
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <div className="flex justify-end gap-3 pt-6 border-t border-border mt-8 mb-4">
         <GhostButton onClick={() => navigate(-1)}>
@@ -411,7 +506,7 @@ export default function ServiceProductForm() {
         </GhostButton>
         <SoftPrimaryButton onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {saving ? t("common.saving") : t("products.save_product")}
+          {saving ? t("common.saving") : t("products.save_service")}
         </SoftPrimaryButton>
       </div>
     </div>

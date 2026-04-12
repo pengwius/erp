@@ -29,6 +29,10 @@ export default function App() {
                 <Route path="new/product" element={<ProductForm />} />
                 <Route path="new/service" element={<ServiceProductForm />} />
                 <Route path=":id/edit" element={<ProductForm />} />
+                <Route
+                  path=":id/edit/service"
+                  element={<ServiceProductForm />}
+                />
               </Route>
               <Route path="settings">
                 <Route path="appearance" element={<AppearanceSettings />} />
