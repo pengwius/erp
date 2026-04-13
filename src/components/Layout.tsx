@@ -11,8 +11,10 @@ import {
   Search,
   LogOut,
   User,
+  Building,
 } from "lucide-react";
 import { useOnboarding } from "../hooks/useOnboarding";
+import { useCompanies } from "../hooks/useCompanies";
 
 import {
   Sidebar,
@@ -100,12 +102,32 @@ export const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { needsOnboarding } = useOnboarding();
+  const { companies, activeCompanyId, switchCompany, fetchCompanies } =
+    useCompanies();
 
   useEffect(() => {
     if (needsOnboarding === true) {
       navigate("/onboarding");
+    } else if (needsOnboarding === false && !activeCompanyId) {
+      navigate("/select-company");
     }
-  }, [needsOnboarding, navigate]);
+  }, [needsOnboarding, activeCompanyId, navigate]);
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
+
+  const activeCompany =
+    companies.find((c) => c.id === activeCompanyId) || companies[0];
+  const operatorName = activeCompany?.operator_name || "John Doe";
+  const companyName =
+    activeCompany?.short_name || activeCompany?.name || "ERP System";
+  const initials = operatorName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
 
   return (
     <SidebarProvider>
@@ -194,14 +216,14 @@ export const Layout = () => {
                     >
                       <Avatar className="h-8 w-8 rounded-lg">
                         <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
-                          JD
+                          {initials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">John Doe</span>
-                        <span className="truncate text-xs">
-                          {t("common.administrator")}
+                        <span className="truncate font-semibold">
+                          {operatorName}
                         </span>
+                        <span className="truncate text-xs">{companyName}</span>
                       </div>
                     </SidebarMenuButton>
                   }
@@ -216,21 +238,39 @@ export const Layout = () => {
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                       <Avatar className="h-8 w-8 rounded-lg">
                         <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
-                          JD
+                          {initials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">John Doe</span>
-                        <span className="truncate text-xs">
-                          {t("common.administrator")}
+                        <span className="truncate font-semibold">
+                          {operatorName}
                         </span>
+                        <span className="truncate text-xs">{companyName}</span>
                       </div>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    {t("common.account")}
+                  {companies.map((company) => (
+                    <DropdownMenuItem
+                      key={company.id}
+                      onClick={() => switchCompany(company.id)}
+                      className="cursor-pointer"
+                    >
+                      <Building className="mr-2 h-4 w-4" />
+                      <div className="flex flex-col">
+                        <span>{company.short_name || company.name}</span>
+                        {company.nip && (
+                          <span className="text-xs text-muted-foreground">
+                            NIP: {company.nip}
+                          </span>
+                        )}
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/onboarding")}>
+                    <Building className="mr-2 h-4 w-4" />
+                    {t("company.add_company", "Add Company")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>

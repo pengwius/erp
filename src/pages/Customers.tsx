@@ -31,8 +31,7 @@ interface Customer {
 export default function Customers() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { companies, fetchCompanies } = useCompanies();
-  const selectedCompany = companies.length > 0 ? companies[0].id : null;
+  const { activeCompanyId: selectedCompany, fetchCompanies } = useCompanies();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

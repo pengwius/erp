@@ -14,6 +14,7 @@ import { AppearanceSettings } from "./pages/settings/AppearanceSettings";
 import { AdvancedSettings } from "./pages/settings/AdvancedSettings";
 import { Onboarding } from "./pages/Onboarding";
 import CompanySettings from "./pages/settings/company/CompanySettings";
+import { CompanySelection } from "./pages/CompanySelection";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="onboarding" element={<Onboarding />} />
+            <Route path="select-company" element={<CompanySelection />} />
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="invoices" element={<Invoices />} />

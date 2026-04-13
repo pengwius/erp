@@ -1,11 +1,24 @@
 export type Company = {
   id: number;
   name: string;
+  short_name?: string | null;
   nip?: string | null;
+  regon?: string | null;
   street?: string | null;
+  building_number?: string | null;
+  flat_number?: string | null;
   city?: string | null;
   postal_code?: string | null;
+  county?: string | null;
+  post_office?: string | null;
+  po_box?: string | null;
+  voivodeship?: string | null;
   country?: string | null;
+  website?: string | null;
+  email?: string | null;
+  currency?: string | null;
+  initial_balance?: string | null;
+  operator_name?: string | null;
   created_at?: string;
   ksef_connected?: boolean;
   ksef_metadata?: string | null;

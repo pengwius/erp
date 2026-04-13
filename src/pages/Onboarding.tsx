@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useNavigate } from "react-router-dom";
+import { useCompanies } from "../hooks/useCompanies";
 import { useTranslation } from "react-i18next";
 import {
   Check,
@@ -12,6 +13,7 @@ import {
   CheckCircle2,
   Zap,
   Loader2,
+  User,
 } from "lucide-react";
 
 import SoftPrimaryButton from "../components/PrimaryButton";
@@ -22,26 +24,44 @@ import InputField from "../components/InputField";
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { companies, fetchCompanies } = useCompanies();
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
 
   const [step, setStep] = useState<number>(1);
   const [name, setName] = useState<string>("");
+  const [shortName, setShortName] = useState<string>("");
   const [nip, setNip] = useState<string>("");
+  const [regon, setRegon] = useState<string>("");
   const [street, setStreet] = useState<string>("");
+  const [buildingNumber, setBuildingNumber] = useState<string>("");
+  const [flatNumber, setFlatNumber] = useState<string>("");
   const [city, setCity] = useState<string>("");
   const [postalCode, setPostalCode] = useState<string>("");
+  const [county, setCounty] = useState<string>("");
+  const [postOffice, setPostOffice] = useState<string>("");
+  const [poBox, setPoBox] = useState<string>("");
+  const [voivodeship, setVoivodeship] = useState<string>("");
   const [country, setCountry] = useState<string>("");
+  const [website, setWebsite] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [currency, setCurrency] = useState<string>("PLN");
+  const [initialBalance, setInitialBalance] = useState<string>("0.00");
+  const [operatorName, setOperatorName] = useState<string>("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const next = () => setStep((s) => Math.min(4, s + 1));
+  const next = () => setStep((s) => Math.min(6, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
 
   const submitCompany = async () => {
     setError(null);
 
     if (!name.trim()) {
-      setError("Company name is required.");
+      setError(t("error.company_name_required", "Company name is required."));
       return;
     }
 
@@ -49,11 +69,24 @@ export const Onboarding: React.FC = () => {
     try {
       const payload = {
         name: name.trim(),
+        short_name: shortName.trim() || null,
         nip: nip.trim() || null,
+        regon: regon.trim() || null,
         street: street.trim() || null,
+        building_number: buildingNumber.trim() || null,
+        flat_number: flatNumber.trim() || null,
         city: city.trim() || null,
         postal_code: postalCode.trim() || null,
+        county: county.trim() || null,
+        post_office: postOffice.trim() || null,
+        po_box: poBox.trim() || null,
+        voivodeship: voivodeship.trim() || null,
         country: country.trim() || null,
+        website: website.trim() || null,
+        email: email.trim() || null,
+        currency: currency.trim() || "PLN",
+        initial_balance: initialBalance.trim() || "0.00",
+        operator_name: operatorName.trim() || null,
       };
 
       await invoke("cmd_create_company", { payload });
@@ -65,7 +98,10 @@ export const Onboarding: React.FC = () => {
           ? e
           : e && (e as any).toString
             ? (e as any).toString()
-            : "An error occurred while creating the company.",
+            : t(
+                "error.create_company_failed",
+                "An error occurred while creating the company.",
+              ),
       );
     } finally {
       setLoading(false);
@@ -75,32 +111,55 @@ export const Onboarding: React.FC = () => {
   const stepsList = [
     {
       id: 1,
-      title: t("onboarding.step_welcome"),
-      desc: t("onboarding.step_get_started"),
+      title: t("onboarding.step_welcome", "Welcome"),
+      desc: t("onboarding.step_get_started", "Get Started"),
       icon: Sparkles,
     },
     {
       id: 2,
-      title: t("onboarding.step_company"),
-      desc: t("onboarding.step_company_details"),
-      icon: Building2,
+      title: t("onboarding.step_user", "User / Operator"),
+      desc: t("onboarding.step_user_details", "Owner & Currency"),
+      icon: User,
     },
     {
       id: 3,
-      title: t("onboarding.step_ksef"),
-      desc: t("onboarding.step_integrations"),
-      icon: Zap,
+      title: t("onboarding.step_company", "Company"),
+      desc: t("onboarding.step_company_details", "Basic details"),
+      icon: Building2,
     },
     {
       id: 4,
-      title: t("onboarding.step_done"),
-      desc: t("onboarding.step_summary"),
+      title: t("onboarding.step_address", "Address & Contact"),
+      desc: t("onboarding.step_address_details", "Location info"),
+      icon: Building2,
+    },
+    {
+      id: 5,
+      title: t("onboarding.step_ksef", "Integration"),
+      desc: t("onboarding.step_integrations", "KSeF Setup"),
+      icon: Zap,
+    },
+    {
+      id: 6,
+      title: t("onboarding.step_done", "Done"),
+      desc: t("onboarding.step_summary", "Summary"),
       icon: CheckCircle2,
     },
   ];
 
   return (
-    <div className="min-h-screen w-full bg-muted/50 flex items-center justify-center p-4 sm:p-8">
+    <div className="min-h-screen w-full bg-muted/50 flex items-center justify-center p-4 sm:p-8 relative">
+      {companies.length > 0 && (
+        <div className="absolute top-4 left-4 sm:top-8 sm:left-8 z-50">
+          <GhostButton
+            onClick={() => navigate("/select-company")}
+            type="button"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {t("onboarding.back_to_selection", "Back to company selection")}
+          </GhostButton>
+        </div>
+      )}
       <div className="w-full max-w-6xl bg-background rounded-[2.5rem] shadow-xl shadow-base-300/20 overflow-hidden border border-border flex flex-col lg:flex-row min-h-175">
         {/* Left Side */}
         <aside className="relative hidden lg:flex lg:w-[40%] bg-muted/30 p-12 flex-col justify-between overflow-hidden border-r border-border">
@@ -216,6 +275,58 @@ export const Onboarding: React.FC = () => {
               <div className="animate-fade-in space-y-6 w-full">
                 <div>
                   <h2 className="text-3xl font-extrabold tracking-tight mb-2">
+                    {t("onboarding.user_details", "User / Operator")}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {t(
+                      "onboarding.user_details_desc",
+                      "Set up the primary user and default currency.",
+                    )}
+                  </p>
+                </div>
+
+                <div className="space-y-4 pt-4 h-[60vh] overflow-y-auto px-4 -mx-4">
+                  <InputField
+                    label={t("company.operator_name", "Operator Name (Owner)")}
+                    value={operatorName}
+                    onChange={setOperatorName}
+                    required
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InputField
+                      label={t("company.currency", "Currency")}
+                      value={currency}
+                      onChange={setCurrency}
+                    />
+                    <InputField
+                      label={t("company.initial_balance", "Initial Balance")}
+                      value={initialBalance}
+                      onChange={setInitialBalance}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-8 flex items-center justify-between">
+                  <GhostButton onClick={back}>
+                    <ArrowLeft className="w-4 h-4" /> {t("common.back")}
+                  </GhostButton>
+                  <SoftPrimaryButton
+                    onClick={next}
+                    disabled={!operatorName.trim()}
+                    icon={<ArrowRight className="w-4 h-4" />}
+                    iconPosition="right"
+                  >
+                    {t("common.next")}
+                  </SoftPrimaryButton>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="animate-fade-in space-y-6 w-full">
+                <div>
+                  <h2 className="text-3xl font-extrabold tracking-tight mb-2">
                     {t("onboarding.company_details")}
                   </h2>
                   <p className="text-muted-foreground">
@@ -223,46 +334,37 @@ export const Onboarding: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="space-y-4 pt-4">
+                <div className="space-y-4 pt-4 h-[60vh] overflow-y-auto px-4 -mx-4">
                   <InputField
-                    label={t("company.name")}
+                    label={t("company.name", "Full Company Name")}
                     value={name}
                     onChange={setName}
-                    placeholder="e.g. ACME Ltd."
+                    placeholder={t(
+                      "company.placeholder_name",
+                      "e.g. ACME Ltd.",
+                    )}
                     required
                   />
-
                   <InputField
-                    label={t("onboarding.tax_id")}
-                    value={nip}
-                    onChange={setNip}
-                    placeholder="e.g. 1234567890"
+                    label={t("company.short_name", "Short Name")}
+                    value={shortName}
+                    onChange={setShortName}
                   />
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <InputField
-                      label={t("company.street")}
-                      value={street}
-                      onChange={setStreet}
-                      placeholder="e.g. Flower St 1/2"
+                      label={t("onboarding.tax_id", "NIP")}
+                      value={nip}
+                      onChange={setNip}
+                      placeholder={t(
+                        "company.placeholder_nip",
+                        "e.g. 1234567890",
+                      )}
                     />
                     <InputField
-                      label={t("company.city")}
-                      value={city}
-                      onChange={setCity}
-                      placeholder="Warsaw"
-                    />
-                    <InputField
-                      label={t("company.postal_code")}
-                      value={postalCode}
-                      onChange={setPostalCode}
-                      placeholder="00-000"
-                    />
-                    <InputField
-                      label={t("company.country")}
-                      value={country}
-                      onChange={setCountry}
-                      placeholder="Poland"
+                      label={t("company.regon", "REGON")}
+                      value={regon}
+                      onChange={setRegon}
                     />
                   </div>
                 </div>
@@ -283,7 +385,112 @@ export const Onboarding: React.FC = () => {
               </div>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
+              <div className="animate-fade-in space-y-6 w-full">
+                <div>
+                  <h2 className="text-3xl font-extrabold tracking-tight mb-2">
+                    {t("onboarding.step_address", "Address & Contact")}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {t(
+                      "onboarding.step_address_details",
+                      "Provide contact and location details",
+                    )}
+                  </p>
+                </div>
+
+                <div className="space-y-4 pt-4 h-[60vh] overflow-y-auto px-4 -mx-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                    <div className="sm:col-span-1">
+                      <InputField
+                        label={t("company.street", "Street")}
+                        value={street}
+                        onChange={setStreet}
+                      />
+                    </div>
+                    <InputField
+                      label={t("company.building_number", "Building No.")}
+                      value={buildingNumber}
+                      onChange={setBuildingNumber}
+                    />
+                    <InputField
+                      label={t("company.flat_number", "Flat No.")}
+                      value={flatNumber}
+                      onChange={setFlatNumber}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <InputField
+                      label={t("company.postal_code", "Postal Code")}
+                      value={postalCode}
+                      onChange={setPostalCode}
+                    />
+                    <InputField
+                      label={t("company.city", "City")}
+                      value={city}
+                      onChange={setCity}
+                    />
+                    <InputField
+                      label={t("company.country", "Country")}
+                      value={country}
+                      onChange={setCountry}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <InputField
+                      label={t("company.county", "County")}
+                      value={county}
+                      onChange={setCounty}
+                    />
+                    <InputField
+                      label={t("company.voivodeship", "Voivodeship")}
+                      value={voivodeship}
+                      onChange={setVoivodeship}
+                    />
+                    <InputField
+                      label={t("company.post_office", "Post Office")}
+                      value={postOffice}
+                      onChange={setPostOffice}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <InputField
+                      label={t("company.po_box", "PO Box")}
+                      value={poBox}
+                      onChange={setPoBox}
+                    />
+                    <InputField
+                      label={t("company.email", "Email Address")}
+                      value={email}
+                      onChange={setEmail}
+                    />
+                    <InputField
+                      label={t("company.website", "Website")}
+                      value={website}
+                      onChange={setWebsite}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-8 flex items-center justify-between">
+                  <GhostButton onClick={back}>
+                    <ArrowLeft className="w-4 h-4" /> {t("common.back")}
+                  </GhostButton>
+                  <SoftPrimaryButton
+                    onClick={next}
+                    icon={<ArrowRight className="w-4 h-4" />}
+                    iconPosition="right"
+                  >
+                    {t("common.next")}
+                  </SoftPrimaryButton>
+                </div>
+              </div>
+            )}
+
+            {step === 5 && (
               <div className="animate-fade-in space-y-6">
                 <div>
                   <h2 className="text-3xl font-extrabold tracking-tight mb-2">
@@ -321,7 +528,7 @@ export const Onboarding: React.FC = () => {
               </div>
             )}
 
-            {step === 4 && (
+            {step === 6 && (
               <div className="animate-fade-in space-y-6">
                 <div>
                   <h2 className="text-3xl font-extrabold tracking-tight mb-2">
