@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS stock_document_lines;
+DROP TABLE IF EXISTS stock_documents;
+DROP TABLE IF EXISTS stocks;
+DROP TABLE IF EXISTS warehouses;
+DROP TABLE IF EXISTS product_prices;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS invoice_lines;
+DROP TABLE IF EXISTS invoices;
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS companies;

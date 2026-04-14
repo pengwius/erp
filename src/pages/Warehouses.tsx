@@ -15,24 +15,19 @@ import { Button } from "@/components/ui/button";
 import SoftPrimaryButton from "@/components/PrimaryButton";
 import { useCompanies } from "@/hooks/useCompanies";
 
-interface Customer {
+interface Warehouse {
   id: number;
   company_id: number;
   name: string;
-  nip: string | null;
-  street: string | null;
-  city: string | null;
-  postal_code: string | null;
-  country: string | null;
-  email: string | null;
-  phone: string | null;
+  location_code_prefix: string | null;
+  created_at: string;
 }
 
-export default function Customers() {
+export default function Warehouses() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { activeCompanyId: selectedCompany, fetchCompanies } = useCompanies();
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,12 +39,13 @@ export default function Customers() {
       setIsLoading(false);
       return;
     }
-    invoke<Customer[]>("cmd_list_customers", { companyId: selectedCompany })
+    setIsLoading(true);
+    invoke<Warehouse[]>("cmd_get_warehouses", { companyId: selectedCompany })
       .then((data) => {
-        setCustomers(data);
+        setWarehouses(data);
       })
       .catch((err) => {
-        console.error("Failed to fetch customers:", err);
+        console.error("Failed to fetch warehouses:", err);
       })
       .finally(() => {
         setIsLoading(false);
@@ -64,24 +60,26 @@ export default function Customers() {
     )
       return;
     try {
-      await invoke("cmd_delete_customer", { id });
-      setCustomers((prev) => prev.filter((c) => c.id !== id));
+      await invoke("cmd_delete_warehouse", { id });
+      setWarehouses((prev) => prev.filter((w) => w.id !== id));
     } catch (err) {
-      console.error("Failed to delete customer", err);
+      console.error("Failed to delete warehouse", err);
     }
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("customers.title")}</h1>
+        <h1 className="text-2xl font-semibold">
+          {t("warehouses.title", "Warehouses")}
+        </h1>
         <div className="flex items-center gap-3">
           <SoftPrimaryButton
             onClick={() => {
-              navigate("/customers/new");
+              navigate("/warehouses/new");
             }}
           >
-            {t("customers.new_customer")}
+            {t("warehouses.new_warehouse", "New Warehouse")}
           </SoftPrimaryButton>
         </div>
       </div>
@@ -91,48 +89,48 @@ export default function Customers() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16">ID</TableHead>
-                <TableHead>{t("customers.name")}</TableHead>
-                <TableHead>{t("customers.nip")}</TableHead>
-                <TableHead>{t("customers.email")}</TableHead>
-                <TableHead>{t("customers.phone")}</TableHead>
-                <TableHead className="w-24 text-right"></TableHead>
+                <TableHead className="w-16">{t("common.id", "ID")}</TableHead>
+                <TableHead>{t("warehouses.name", "Name")}</TableHead>
+                <TableHead>
+                  {t("warehouses.location_code_prefix", "Location Prefix")}
+                </TableHead>
+                <TableHead className="w-24 text-right">
+                  {t("common.actions", "Actions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
-                    {t("common.loading")}
+                  <TableCell colSpan={4} className="text-center py-6">
+                    {t("common.loading", "Loading...")}
                   </TableCell>
                 </TableRow>
-              ) : customers.length === 0 ? (
+              ) : warehouses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
-                    {t("customers.no_customers")}
+                  <TableCell colSpan={4} className="text-center py-6">
+                    {t("warehouses.no_warehouses", "No warehouses found.")}
                   </TableCell>
                 </TableRow>
               ) : (
-                customers.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell>{c.id}</TableCell>
-                    <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell>{c.nip || "-"}</TableCell>
-                    <TableCell>{c.email || "-"}</TableCell>
-                    <TableCell>{c.phone || "-"}</TableCell>
+                warehouses.map((w) => (
+                  <TableRow key={w.id}>
+                    <TableCell>{w.id}</TableCell>
+                    <TableCell className="font-medium">{w.name}</TableCell>
+                    <TableCell>{w.location_code_prefix || "-"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(`/customers/${c.id}/edit`)}
+                          onClick={() => navigate(`/warehouses/${w.id}/edit`)}
                         >
-                          {t("common.edit")}
+                          {t("common.edit", "Edit")}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDelete(c.id)}
+                          onClick={() => handleDelete(w.id)}
                         >
                           {t("common.delete", "Delete")}
                         </Button>

@@ -202,43 +202,12 @@ pub async fn cmd_create_product(payload: CreateProductPayload) -> Result<product
             country_of_origin: payload.country_of_origin,
         };
         {
-            let np_retry = np.clone();
             match product::create_product(conn, np) {
                 Ok(p) => Ok(p),
                 Err(err) => {
                     let s = err.to_string();
                     eprintln!("cmd_create_product failed inserting product: {:?}", s);
-                    if s.contains("no column named ean") || s.contains("has no column named ean") {
-                        match diesel::sql_query("ALTER TABLE products ADD COLUMN ean TEXT;").execute(conn) {
-                            Ok(_) => {
-                                eprintln!("schema patch: added column 'ean' to products table, retrying insert");
-                            }
-                            Err(e) => { let e: diesel::result::Error = e;
-                                let s = e.to_string();
-                                eprintln!("schema patch (add ean) failed: {}", s);
-                            }
-                        }
-                        product::create_product(conn, np_retry).map_err(|e| {
-                            eprintln!("cmd_create_product retry failed: {:?}", e);
-                            e.to_string()
-                        })
-                    } else if s.contains("no column named short_description") || s.contains("has no column named short_description") {
-                        match diesel::sql_query("ALTER TABLE products ADD COLUMN short_description TEXT;").execute(conn) {
-                            Ok(_) => {
-                                eprintln!("schema patch: added column 'short_description' to products table, retrying insert");
-                            }
-                            Err(e) => { let e: diesel::result::Error = e;
-                                let s = e.to_string();
-                                eprintln!("schema patch (add short_description) failed: {}", s);
-                            }
-                        }
-                        product::create_product(conn, np_retry).map_err(|e| {
-                            eprintln!("cmd_create_product retry failed: {:?}", e);
-                            e.to_string()
-                        })
-                    } else {
-                        Err(s)
-                    }
+                    Err(s)
                 }
             }
         }

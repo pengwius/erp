@@ -4,6 +4,8 @@ pub mod schema;
 pub mod invoice;
 pub mod product;
 pub mod customer;
+pub mod warehouse;
+pub mod stock;
 
 use diesel::SqliteConnection;
 use diesel::RunQueryDsl;
@@ -239,26 +241,7 @@ pub fn run() {
                 Ok(pool) => {
                     let _ = DB_POOL.set(pool.clone());
 
-                    if let Ok(mut conn) = pool.get() {
-                        match diesel::sql_query("ALTER TABLE products ADD COLUMN ean TEXT;").execute(&mut *conn) {
-                            Ok(_) => {}
-                            Err(err) => {
-                                let s = err.to_string();
-                                if !s.contains("duplicate column name") && !s.contains("already exists") {
-                                    eprintln!("schema patch (add ean) failed: {}", s);
-                                }
-                            }
-                        }
-                        match diesel::sql_query("ALTER TABLE products ADD COLUMN short_description TEXT;").execute(&mut *conn) {
-                            Ok(_) => {}
-                            Err(err) => {
-                                let s = err.to_string();
-                                if !s.contains("duplicate column name") && !s.contains("already exists") {
-                                    eprintln!("schema patch (add short_description) failed: {}", s);
-                                }
-                            }
-                        }
-                    }
+
                 }
                 Err(e) => {
                     eprintln!("Failed to init DB at {}: {:?}", db_path, e);
@@ -270,26 +253,7 @@ pub fn run() {
                         Ok(pool) => {
                             let _ = DB_POOL.set(pool.clone());
 
-                            if let Ok(mut conn) = pool.get() {
-                                match diesel::sql_query("ALTER TABLE products ADD COLUMN ean TEXT;").execute(&mut *conn) {
-                                    Ok(_) => {}
-                                    Err(err) => {
-                                        let s = err.to_string();
-                                        if !s.contains("duplicate column name") && !s.contains("already exists") {
-                                            eprintln!("schema patch (add ean) failed on fallback DB: {}", s);
-                                        }
-                                    }
-                                }
-                                match diesel::sql_query("ALTER TABLE products ADD COLUMN short_description TEXT;").execute(&mut *conn) {
-                                    Ok(_) => {}
-                                    Err(err) => {
-                                        let s = err.to_string();
-                                        if !s.contains("duplicate column name") && !s.contains("already exists") {
-                                            eprintln!("schema patch (add short_description) failed on fallback DB: {}", s);
-                                        }
-                                    }
-                                }
-                            }
+
                         }
                         Err(e2) => {
                             eprintln!("Failed to init fallback DB at {}: {:?}", fallback_db_path, e2);
@@ -332,6 +296,14 @@ pub fn run() {
             commands::customer::cmd_delete_customer,
             commands::customer::cmd_get_customer,
             commands::customer::cmd_list_customers,
+            commands::warehouse::cmd_create_warehouse,
+            commands::warehouse::cmd_get_warehouses,
+            commands::warehouse::cmd_get_warehouse,
+            commands::warehouse::cmd_update_warehouse,
+            commands::warehouse::cmd_delete_warehouse,
+            commands::stock::cmd_create_stock_document,
+            commands::stock::cmd_get_stocks,
+            commands::stock::cmd_get_stock_documents,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

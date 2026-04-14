@@ -12,8 +12,7 @@ export default function CustomerForm() {
   const { t } = useTranslation();
   const params = useParams<{ id?: string }>();
   const editingId = params.id ? parseInt(params.id, 10) : null;
-  const { companies, fetchCompanies } = useCompanies();
-  const selectedCompany = companies.length > 0 ? companies[0].id : null;
+  const { activeCompanyId: selectedCompany, fetchCompanies } = useCompanies();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 

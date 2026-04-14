@@ -1,5 +1,12 @@
 import { Card } from "@/components/ui/card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -232,18 +239,21 @@ export const Invoices: React.FC = () => {
                   {t("invoices.issuer_company")}
                 </span>
               </label>
-              <select
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={issuerCompanyId ?? ""}
-                onChange={(e) => setIssuerCompanyId(Number(e.target.value))}
+              <Select
+                value={issuerCompanyId?.toString() || ""}
+                onValueChange={(val) => setIssuerCompanyId(Number(val))}
               >
-                <option value="">{t("invoices.select_issuer")}</option>
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full h-10">
+                  <SelectValue placeholder={t("invoices.select_issuer")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies.map((c) => (
+                    <SelectItem key={c.id} value={c.id.toString()}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <InputField
