@@ -72,20 +72,18 @@ function AsyncImagePreview({
       !src.startsWith("http") &&
       !src.startsWith("blob:")
     ) {
-      import("@tauri-apps/api/core").then(({ invoke }) => {
-        invoke("cmd_get_image", { path: src })
-          .then((b64: any) => {
-            const ext = src.split(".").pop()?.toLowerCase();
-            const mime =
-              ext === "png"
-                ? "image/png"
-                : ext === "gif"
-                  ? "image/gif"
-                  : "image/jpeg";
-            setImgSrc(`data:${mime};base64,${b64}`);
-          })
-          .catch(console.error);
-      });
+      invoke("cmd_get_image", { path: src })
+        .then((b64: any) => {
+          const ext = src.split(".").pop()?.toLowerCase();
+          const mime =
+            ext === "png"
+              ? "image/png"
+              : ext === "gif"
+                ? "image/gif"
+                : "image/jpeg";
+          setImgSrc(`data:${mime};base64,${b64}`);
+        })
+        .catch(console.error);
     } else {
       setImgSrc(src);
     }

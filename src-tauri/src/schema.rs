@@ -193,6 +193,10 @@ diesel::table! {
         company_id -> Integer,
         name -> Text,
         location_code_prefix -> Nullable<Text>,
+        description -> Nullable<Text>,
+        address -> Nullable<Text>,
+        manager_name -> Nullable<Text>,
+        is_active -> Integer,
         created_at -> Text,
     }
 }

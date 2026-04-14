@@ -21,13 +21,19 @@
     "account": "Account",
     "log_out": "Log out",
     "administrator": "Administrator",
-    "optional": "optional"
+    "optional": "optional",
+    "id": "ID",
+    "confirm_delete": "Are you sure you want to delete this?"
   },
   "nav": {
     "dashboard": "Dashboard",
     "invoices": "Invoices",
     "customers": "Customers",
     "products": "Products",
+    "warehouse_module": "Warehouse",
+    "warehouses": "Warehouses",
+    "stocks": "Stocks",
+    "stock_documents": "Documents",
     "settings": "Settings",
     "company": "Company",
     "appearance": "Appearance",
@@ -230,6 +236,21 @@
     "gross": "Gross",
     "view": "View"
   },
+  "warehouses": {
+    "title": "Warehouses",
+    "new_warehouse": "New Warehouse",
+    "name": "Name",
+    "location_code_prefix": "Location Code Prefix",
+    "description": "Description",
+    "address": "Address",
+    "manager_name": "Manager Name",
+    "is_active": "Active",
+    "is_default": "Default",
+    "no_warehouses": "No warehouses.",
+    "edit_warehouse": "Edit Warehouse",
+    "form_description": "Fill in the warehouse details.",
+    "is_default_label": "Set as default warehouse"
+  },
   "appearance": {
     "title": "Appearance",
     "theme": "Theme",
@@ -239,6 +260,38 @@
     "accent_color": "Accent Color",
     "sidebar": "Sidebar",
     "language": "Language"
+  },
+  "stocks": {
+    "title": "Stock Levels",
+    "select_warehouse": "Select Warehouse:",
+    "product_name": "Product Name",
+    "location_code": "Location Code",
+    "physical": "Physical",
+    "reserved": "Reserved",
+    "available": "Available",
+    "no_stocks": "No stock data available."
+  },
+  "stock_documents": {
+    "title": "Stock Documents",
+    "new_document": "New Document",
+    "issue_date": "Date",
+    "document_type": "Type",
+    "document_number": "Number",
+    "source_warehouse": "Source Warehouse",
+    "target_warehouse": "Target Warehouse",
+    "no_documents": "No stock documents found.",
+    "create": "Create Stock Document",
+    "type_pz": "PZ (Goods Receipt)",
+    "type_wz": "WZ (Goods Issue)",
+    "type_mm": "MM (Inter-warehouse Transfer)",
+    "select_type": "Select type",
+    "number_placeholder": "e.g. PZ/2023/10/01",
+    "select_warehouse": "Select warehouse",
+    "products": "Products",
+    "add_line": "Add Product",
+    "error_source_warehouse_required": "Source warehouse is required for WZ and MM",
+    "error_target_warehouse_required": "Target warehouse is required for PZ and MM",
+    "error_lines_required": "At least one product with quantity is required"
   },
   "advanced": {
     "title": "Advanced Settings",

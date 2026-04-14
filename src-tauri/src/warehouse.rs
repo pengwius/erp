@@ -10,6 +10,10 @@ pub struct Warehouse {
     pub company_id: i32,
     pub name: String,
     pub location_code_prefix: Option<String>,
+    pub description: Option<String>,
+    pub address: Option<String>,
+    pub manager_name: Option<String>,
+    pub is_active: i32,
     pub created_at: String,
 }
 
@@ -19,6 +23,10 @@ pub struct NewWarehouse {
     pub company_id: i32,
     pub name: String,
     pub location_code_prefix: Option<String>,
+    pub description: Option<String>,
+    pub address: Option<String>,
+    pub manager_name: Option<String>,
+    pub is_active: i32,
     pub created_at: String,
 }
 
@@ -27,6 +35,10 @@ pub struct NewWarehouse {
 pub struct UpdateWarehouse {
     pub name: Option<String>,
     pub location_code_prefix: Option<String>,
+    pub description: Option<String>,
+    pub address: Option<String>,
+    pub manager_name: Option<String>,
+    pub is_active: Option<i32>,
 }
 
 pub fn create_warehouse(

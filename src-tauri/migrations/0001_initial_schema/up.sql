@@ -143,6 +143,10 @@ CREATE TABLE warehouses (
     company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     location_code_prefix TEXT,
+    description TEXT,
+    address TEXT,
+    manager_name TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

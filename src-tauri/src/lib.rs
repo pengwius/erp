@@ -5,6 +5,7 @@ pub mod invoice;
 pub mod product;
 pub mod customer;
 pub mod warehouse;
+pub mod stock;
 
 use diesel::SqliteConnection;
 use diesel::RunQueryDsl;
@@ -300,6 +301,9 @@ pub fn run() {
             commands::warehouse::cmd_get_warehouse,
             commands::warehouse::cmd_update_warehouse,
             commands::warehouse::cmd_delete_warehouse,
+            commands::stock::cmd_create_stock_document,
+            commands::stock::cmd_get_stocks,
+            commands::stock::cmd_get_stock_documents,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

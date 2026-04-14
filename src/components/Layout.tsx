@@ -12,6 +12,9 @@ import {
   LogOut,
   User,
   Building,
+  // Warehouse,
+  Boxes,
+  ClipboardList,
 } from "lucide-react";
 import { useOnboarding } from "../hooks/useOnboarding";
 import { useCompanies } from "../hooks/useCompanies";
@@ -73,6 +76,27 @@ const menuItems = [
     name: "nav.products",
     path: "/products",
     icon: ScanBarcode,
+  },
+  {
+    name: "nav.warehouse_module",
+    icon: Building,
+    subItems: [
+      {
+        name: "nav.warehouses",
+        path: "/warehouses",
+        icon: Building,
+      },
+      {
+        name: "nav.stocks",
+        path: "/stocks",
+        icon: Boxes,
+      },
+      {
+        name: "nav.stock_documents",
+        path: "/stock-documents",
+        icon: ClipboardList,
+      },
+    ],
   },
   {
     name: "nav.settings",

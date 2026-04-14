@@ -15,6 +15,11 @@ import { AdvancedSettings } from "./pages/settings/AdvancedSettings";
 import { Onboarding } from "./pages/Onboarding";
 import CompanySettings from "./pages/settings/company/CompanySettings";
 import { CompanySelection } from "./pages/CompanySelection";
+import Warehouses from "./pages/Warehouses";
+import Stocks from "./pages/Stocks";
+import WarehouseForm from "./pages/warehouses/WarehouseForm";
+import StockDocuments from "./pages/StockDocuments";
+import StockDocumentForm from "./pages/stock-documents/StockDocumentForm";
 
 export default function App() {
   return (
@@ -42,6 +47,16 @@ export default function App() {
                   path=":id/edit/service"
                   element={<ServiceProductForm />}
                 />
+              </Route>
+              <Route path="stocks" element={<Stocks />} />
+              <Route path="stock-documents">
+                <Route index element={<StockDocuments />} />
+                <Route path="new" element={<StockDocumentForm />} />
+              </Route>
+              <Route path="warehouses">
+                <Route index element={<Warehouses />} />
+                <Route path="new" element={<WarehouseForm />} />
+                <Route path=":id/edit" element={<WarehouseForm />} />
               </Route>
               <Route path="settings">
                 <Route path="appearance" element={<AppearanceSettings />} />

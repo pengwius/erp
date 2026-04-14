@@ -21,16 +21,23 @@
     "account": "Konto",
     "log_out": "Wyloguj się",
     "administrator": "Administrator",
-    "optional": "opcjonalnie"
+    "optional": "opcjonalnie",
+    "id": "ID",
+    "confirm_delete": "Czy na pewno chcesz usunąć ten element?"
   },
   "error": {
-    "company_name_required": "Nazwa firmy jest wymagana."
+    "company_name_required": "Nazwa firmy jest wymagana.",
+    "create_company_failed": "Wystąpił błąd podczas tworzenia firmy."
   },
   "nav": {
     "dashboard": "Pulpit",
     "invoices": "Faktury",
     "customers": "Klienci",
     "products": "Produkty",
+    "warehouse_module": "Magazyn",
+    "stocks": "Stany",
+    "stock_documents": "Dokumenty",
+    "warehouses": "Magazyny",
     "settings": "Ustawienia",
     "company": "Firma",
     "appearance": "Wygląd",
@@ -254,6 +261,21 @@
     "gross": "Brutto",
     "view": "Podgląd"
   },
+  "warehouses": {
+    "title": "Magazyny",
+    "new_warehouse": "Nowy magazyn",
+    "name": "Nazwa",
+    "location_code_prefix": "Prefiks kodu lokalizacji",
+    "description": "Opis",
+    "address": "Adres",
+    "manager_name": "Kierownik",
+    "is_active": "Aktywny",
+    "is_default": "Domyślny",
+    "no_warehouses": "Brak magazynów.",
+    "edit_warehouse": "Edytuj magazyn",
+    "form_description": "Wypełnij dane magazynu.",
+    "is_default_label": "Ustaw jako domyślny magazyn"
+  },
   "appearance": {
     "title": "Wygląd",
     "theme": "Motyw",
@@ -263,6 +285,38 @@
     "accent_color": "Kolor wiodący",
     "sidebar": "Pasek boczny",
     "language": "Język"
+  },
+  "stocks": {
+    "title": "Stany Magazynowe",
+    "select_warehouse": "Wybierz Magazyn:",
+    "product_name": "Nazwa Produktu",
+    "location_code": "Kod Lokalizacji",
+    "physical": "Stan Fizyczny",
+    "reserved": "Rezerwacje",
+    "available": "Stan Dostępny",
+    "no_stocks": "Brak stanów dla tego magazynu."
+  },
+  "stock_documents": {
+    "title": "Dokumenty Magazynowe",
+    "new_document": "Nowy dokument",
+    "issue_date": "Data",
+    "document_type": "Typ",
+    "document_number": "Numer",
+    "source_warehouse": "Magazyn źródłowy",
+    "target_warehouse": "Magazyn docelowy",
+    "no_documents": "Brak dokumentów magazynowych.",
+    "create": "Utwórz dokument magazynowy",
+    "type_pz": "PZ (Przyjęcie Zewnętrzne)",
+    "type_wz": "WZ (Wydanie Zewnętrzne)",
+    "type_mm": "MM (Przesunięcie Międzymagazynowe)",
+    "select_type": "Wybierz typ",
+    "number_placeholder": "np. PZ/2023/10/01",
+    "select_warehouse": "Wybierz magazyn",
+    "products": "Produkty",
+    "add_line": "Dodaj produkt",
+    "error_source_warehouse_required": "Magazyn źródłowy jest wymagany dla WZ i MM",
+    "error_target_warehouse_required": "Magazyn docelowy jest wymagany dla PZ i MM",
+    "error_lines_required": "Wymagany jest przynajmniej jeden produkt z ilością"
   },
   "advanced": {
     "title": "Ustawienia zaawansowane",
