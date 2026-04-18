@@ -71,6 +71,7 @@ CREATE TABLE invoices (
     net_amount TEXT,
     tax_amount TEXT,
     gross_amount TEXT,
+    warehouse_id INTEGER REFERENCES warehouses(id) ON DELETE SET NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT
 );
@@ -86,7 +87,8 @@ CREATE TABLE invoice_lines (
     tax_rate TEXT,
     line_net_total TEXT,
     line_tax_total TEXT,
-    line_gross_total TEXT
+    line_gross_total TEXT,
+    product_id INTEGER REFERENCES products(id) ON DELETE SET NULL
 );
 
 CREATE TABLE products (

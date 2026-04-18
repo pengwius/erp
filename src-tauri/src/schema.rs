@@ -78,6 +78,8 @@ diesel::table! {
         net_amount -> Nullable<Text>,
         tax_amount -> Nullable<Text>,
         gross_amount -> Nullable<Text>,
+        warehouse_id -> Nullable<Integer>,
+        status -> Text,
         created_at -> Text,
         updated_at -> Nullable<Text>,
     }
@@ -96,6 +98,7 @@ diesel::table! {
         line_net_total -> Nullable<Text>,
         line_tax_total -> Nullable<Text>,
         line_gross_total -> Nullable<Text>,
+        product_id -> Nullable<Integer>,
     }
 }
 
@@ -203,7 +206,9 @@ diesel::table! {
 
 diesel::joinable!(customers -> companies (company_id));
 diesel::joinable!(invoices -> companies (issuer_company_id));
+diesel::joinable!(invoices -> warehouses (warehouse_id));
 diesel::joinable!(invoice_lines -> invoices (invoice_id));
+diesel::joinable!(invoice_lines -> products (product_id));
 diesel::joinable!(products -> companies (company_id));
 diesel::joinable!(product_prices -> products (product_id));
 diesel::joinable!(stock_document_lines -> products (product_id));

@@ -40,6 +40,8 @@ pub struct Invoice {
     pub net_amount: Option<String>,
     pub tax_amount: Option<String>,
     pub gross_amount: Option<String>,
+    pub warehouse_id: Option<i32>,
+    pub status: String,
     pub created_at: String,
     pub updated_at: Option<String>,
 }
@@ -75,6 +77,8 @@ pub struct NewInvoice {
     pub net_amount: Option<String>,
     pub tax_amount: Option<String>,
     pub gross_amount: Option<String>,
+    pub warehouse_id: Option<i32>,
+    pub status: String,
 }
 
 #[derive(Debug, Clone, AsChangeset)]
@@ -104,6 +108,8 @@ pub struct UpdateInvoice {
     pub net_amount: Option<Option<String>>,
     pub tax_amount: Option<Option<String>>,
     pub gross_amount: Option<Option<String>>,
+    pub warehouse_id: Option<Option<i32>>,
+    pub status: Option<String>,
     pub updated_at: Option<String>,
 }
 
@@ -122,6 +128,7 @@ pub struct InvoiceLine {
     pub line_net_total: Option<String>,
     pub line_tax_total: Option<String>,
     pub line_gross_total: Option<String>,
+    pub product_id: Option<i32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Insertable)]
@@ -137,6 +144,7 @@ pub struct NewInvoiceLine {
     pub line_net_total: Option<String>,
     pub line_tax_total: Option<String>,
     pub line_gross_total: Option<String>,
+    pub product_id: Option<i32>,
 }
 
 pub fn create_invoice(
@@ -164,6 +172,7 @@ pub fn create_invoice(
                 line_net_total: ln.line_net_total,
                 line_tax_total: ln.line_tax_total,
                 line_gross_total: ln.line_gross_total,
+                product_id: ln.product_id,
             };
             to_insert.push(l);
         }
@@ -175,12 +184,47 @@ pub fn create_invoice(
                 .context("Failed to insert invoice lines")?;
         }
 
+        if let Some(w_id) = new_invoice.warehouse_id {
+            if new_invoice.status != "draft" {
+                use crate::stock::{create_stock_document, NewStockDocument, NewStockDocumentLine};
+                let mut stock_lines = Vec::new();
+                for ln in &to_insert {
+                    if let Some(p_id) = ln.product_id {
+                        let qty = ln.quantity.clone().unwrap_or_else(|| "1".to_string());
+                        stock_lines.push(NewStockDocumentLine {
+                            document_id: 0,
+                            product_id: p_id,
+                            quantity: qty,
+                            purchase_price: ln.net_price.clone(),
+                        });
+                    }
+                }
+                if !stock_lines.is_empty() {
+                    let now = chrono::Local::now().format("%Y-%m-%d").to_string();
+                    let new_doc = NewStockDocument {
+                        company_id: new_invoice.issuer_company_id,
+                        document_type: "WZ".to_string(),
+                        document_number: format!("WZ/INV/{}", inserted.id),
+                        source_warehouse_id: Some(w_id),
+                        target_warehouse_id: None,
+                        issue_date: now.clone(),
+                        created_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+                    };
+                    create_stock_document(conn, new_doc, stock_lines)
+                        .context("Failed to create WZ document")?;
+                }
+            }
+        }
+
         Ok(inserted)
     })
     .map_err(|e| anyhow!(e.to_string()))
 }
 
-pub fn fetch_invoice_by_id(conn: &mut SqliteConnection, invoice_id: i32) -> Result<(Invoice, Vec<InvoiceLine>)> {
+pub fn fetch_invoice_by_id(
+    conn: &mut SqliteConnection,
+    invoice_id: i32,
+) -> Result<(Invoice, Vec<InvoiceLine>)> {
     use crate::schema::invoice_lines::dsl as lines_dsl;
     use crate::schema::invoices::dsl as inv_dsl;
 
@@ -207,8 +251,7 @@ pub fn list_invoices(conn: &mut SqliteConnection, limit: i64) -> Result<Vec<Invo
         q = q.limit(limit);
     }
 
-    q.load(conn)
-        .context("Failed to list invoices")
+    q.load(conn).context("Failed to list invoices")
 }
 
 pub fn update_invoice_number(
@@ -229,7 +272,10 @@ pub fn update_invoice_number(
 
     if let Some(found_id) = conflict {
         if found_id != invoice_id_val {
-            return Err(anyhow!("Invoice number '{}' is already used by this issuer", new_number));
+            return Err(anyhow!(
+                "Invoice number '{}' is already used by this issuer",
+                new_number
+            ));
         }
     }
 
@@ -246,9 +292,9 @@ pub fn generate_fa3_xml(conn: &mut SqliteConnection, invoice_id: i32) -> Result<
     let (inv, lines) = fetch_invoice_by_id(conn, invoice_id)?;
 
     use invoice_gen::fa_3::builder::{BuyerBuilder, LineBuilder, SellerBuilder};
+    use invoice_gen::fa_3::models::Invoice as Fa3Invoice;
     use invoice_gen::shared::models::CurrencyCode;
     use invoice_gen::shared::models::TaxRate;
-    use invoice_gen::fa_3::models::Invoice as Fa3Invoice;
 
     let seller_nip = inv.seller_nip.clone().unwrap_or_default();
     let mut seller_builder = SellerBuilder::new(&seller_nip, &inv.seller_name);
@@ -260,7 +306,8 @@ pub fn generate_fa3_xml(conn: &mut SqliteConnection, invoice_id: i32) -> Result<
         inv.seller_postal_code.as_deref(),
     ) {
         let flat_opt = inv.seller_flat_number.as_deref();
-        seller_builder = seller_builder.set_address(country, street, building, flat_opt, city, postal);
+        seller_builder =
+            seller_builder.set_address(country, street, building, flat_opt, city, postal);
     }
     let seller = seller_builder.build();
 
@@ -274,7 +321,8 @@ pub fn generate_fa3_xml(conn: &mut SqliteConnection, invoice_id: i32) -> Result<
         inv.buyer_postal_code.as_deref(),
     ) {
         let flat_opt = inv.buyer_flat_number.as_deref();
-        buyer_builder = buyer_builder.set_address(country, street, building, flat_opt, city, postal);
+        buyer_builder =
+            buyer_builder.set_address(country, street, building, flat_opt, city, postal);
     }
     let buyer = buyer_builder.build();
 
@@ -310,6 +358,19 @@ pub fn generate_fa3_xml(conn: &mut SqliteConnection, invoice_id: i32) -> Result<
     fa3.invoice_body.currency_code = CurrencyCode::new(&inv.currency);
     fa3.invoice_body.lines = fa_lines;
 
-    let xml = fa3.to_xml().map_err(|e| anyhow!("Failed to generate XML: {}", e))?;
+    let xml = fa3
+        .to_xml()
+        .map_err(|e| anyhow!("Failed to generate XML: {}", e))?;
+
+    let mut buf = Vec::new();
+    if let Ok(element) = xmltree::Element::parse(xml.as_bytes()) {
+        let config = xmltree::EmitterConfig::new().perform_indent(true);
+        if element.write_with_config(&mut buf, config).is_ok() {
+            if let Ok(formatted) = String::from_utf8(buf) {
+                return Ok(formatted);
+            }
+        }
+    }
+
     Ok(xml)
 }

@@ -1,10 +1,10 @@
-use diesel::RunQueryDsl;
 use crate::product;
 use crate::run_db_task;
 use crate::APP_DIR;
-use std::path::PathBuf;
-use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::Engine;
+use diesel::RunQueryDsl;
+use std::path::PathBuf;
 use uuid::Uuid;
 
 #[derive(serde::Deserialize)]
@@ -116,7 +116,11 @@ fn save_images_to_appdir(images_opt: Option<serde_json::Value>) -> Option<String
                 if let Some(pos) = s.find(',') {
                     let meta = &s[..pos];
                     let data = &s[pos + 1..];
-                    let mime = meta.split(';').next().and_then(|m| m.strip_prefix("data:")).unwrap_or("application/octet-stream");
+                    let mime = meta
+                        .split(';')
+                        .next()
+                        .and_then(|m| m.strip_prefix("data:"))
+                        .unwrap_or("application/octet-stream");
                     let ext = if mime.contains("png") {
                         "png"
                     } else if mime.contains("jpeg") || mime.contains("jpg") {
@@ -260,7 +264,10 @@ pub async fn cmd_update_product(payload: UpdateProductPayload) -> Result<product
             updated_at: None,
         };
         product::update_product(conn, payload.id, changes).map_err(|e| {
-            eprintln!("cmd_update_product failed updating id {}: {:?}", payload.id, e);
+            eprintln!(
+                "cmd_update_product failed updating id {}: {:?}",
+                payload.id, e
+            );
             e.to_string()
         })
     })
@@ -274,7 +281,10 @@ pub async fn cmd_delete_product(id: i32) -> Result<usize, String> {
 
 #[tauri::command]
 pub async fn cmd_delete_product_price(price_id: i32) -> Result<usize, String> {
-    run_db_task(move |conn| product::delete_product_price(conn, price_id).map_err(|e| e.to_string())).await
+    run_db_task(move |conn| {
+        product::delete_product_price(conn, price_id).map_err(|e| e.to_string())
+    })
+    .await
 }
 
 #[tauri::command]
@@ -289,10 +299,17 @@ pub async fn cmd_get_image(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn cmd_list_products(company_id: i32, only_active: Option<bool>, limit: Option<i64>) -> Result<Vec<product::Product>, String> {
+pub async fn cmd_list_products(
+    company_id: i32,
+    only_active: Option<bool>,
+    limit: Option<i64>,
+) -> Result<Vec<product::Product>, String> {
     let only = only_active.unwrap_or(true);
     let lim = limit.unwrap_or(100);
-    run_db_task(move |conn| product::list_products_for_company(conn, company_id, only, lim).map_err(|e| e.to_string())).await
+    run_db_task(move |conn| {
+        product::list_products_for_company(conn, company_id, only, lim).map_err(|e| e.to_string())
+    })
+    .await
 }
 
 #[tauri::command]
@@ -301,7 +318,9 @@ pub async fn cmd_get_product(id: i32) -> Result<product::Product, String> {
 }
 
 #[tauri::command]
-pub async fn cmd_create_product_price(payload: CreateProductPricePayload) -> Result<product::ProductPrice, String> {
+pub async fn cmd_create_product_price(
+    payload: CreateProductPricePayload,
+) -> Result<product::ProductPrice, String> {
     run_db_task(move |conn| {
         let np = product::NewProductPrice {
             product_id: payload.product_id,
@@ -311,16 +330,30 @@ pub async fn cmd_create_product_price(payload: CreateProductPricePayload) -> Res
             valid_to: payload.valid_to,
         };
         product::create_product_price(conn, np).map_err(|e| e.to_string())
-    }).await
+    })
+    .await
 }
 
 #[tauri::command]
-pub async fn cmd_list_product_prices(product_id: i32) -> Result<Vec<product::ProductPrice>, String> {
-    run_db_task(move |conn| product::get_prices_for_product(conn, product_id).map_err(|e| e.to_string())).await
+pub async fn cmd_list_product_prices(
+    product_id: i32,
+) -> Result<Vec<product::ProductPrice>, String> {
+    run_db_task(move |conn| {
+        product::get_prices_for_product(conn, product_id).map_err(|e| e.to_string())
+    })
+    .await
 }
 
 #[tauri::command]
-pub async fn cmd_get_current_price(payload: GetCurrentPricePayload) -> Result<Option<product::ProductPrice>, String> {
-    let at_time = payload.at.unwrap_or_else(|| chrono::Local::now().format("%Y-%m-%dT%H:%M:%S").to_string());
-    run_db_task(move |conn| product::get_current_price(conn, payload.product_id, &payload.currency, &at_time).map_err(|e| e.to_string())).await
+pub async fn cmd_get_current_price(
+    payload: GetCurrentPricePayload,
+) -> Result<Option<product::ProductPrice>, String> {
+    let at_time = payload
+        .at
+        .unwrap_or_else(|| chrono::Local::now().format("%Y-%m-%dT%H:%M:%S").to_string());
+    run_db_task(move |conn| {
+        product::get_current_price(conn, payload.product_id, &payload.currency, &at_time)
+            .map_err(|e| e.to_string())
+    })
+    .await
 }

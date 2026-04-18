@@ -1,9 +1,9 @@
 use diesel::prelude::*;
 use rust_decimal::Decimal;
-use std::str::FromStr;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
-use crate::schema::{stocks, stock_documents, stock_document_lines, products};
+use crate::schema::{products, stock_document_lines, stock_documents, stocks};
 
 #[derive(Queryable, Selectable, Identifiable, Serialize, Deserialize, Debug, Clone)]
 #[diesel(table_name = stocks)]

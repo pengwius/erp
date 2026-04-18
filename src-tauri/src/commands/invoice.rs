@@ -8,6 +8,7 @@ pub struct CreateInvoiceLinePayload {
     pub quantity: Option<String>,
     pub net_price: Option<String>,
     pub tax_rate: Option<String>,
+    pub product_id: Option<i32>,
 }
 
 #[derive(serde::Deserialize)]
@@ -38,6 +39,9 @@ pub struct CreateInvoicePayload {
     pub buyer_city: Option<String>,
     pub buyer_postal_code: Option<String>,
     pub lines: Vec<CreateInvoiceLinePayload>,
+    pub warehouse_id: Option<i32>,
+    pub status: String,
+    pub save_new_customer: bool,
 }
 
 #[derive(serde::Deserialize)]
@@ -78,6 +82,9 @@ pub async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice
             buyer_city,
             buyer_postal_code,
             lines,
+            warehouse_id,
+            status,
+            save_new_customer,
         } = payload;
 
         let mut owned_lines: Vec<invoice::NewInvoiceLine> = Vec::with_capacity(lines.len());
@@ -92,10 +99,13 @@ pub async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice
             let net_price_s = l.net_price.unwrap_or_else(|| "0".to_string());
             let tax_rate_s = l.tax_rate.unwrap_or_else(|| "23".to_string());
 
-            let qty = rust_decimal::Decimal::from_str(&quantity_s).unwrap_or(rust_decimal::Decimal::new(1, 0));
-            let net_p = rust_decimal::Decimal::from_str(&net_price_s).unwrap_or(rust_decimal::Decimal::new(0, 2));
+            let qty = rust_decimal::Decimal::from_str(&quantity_s)
+                .unwrap_or(rust_decimal::Decimal::new(1, 0));
+            let net_p = rust_decimal::Decimal::from_str(&net_price_s)
+                .unwrap_or(rust_decimal::Decimal::new(0, 2));
             let line_net = (qty * net_p).round_dp(2);
-            let tax_pct = rust_decimal::Decimal::from_str(&tax_rate_s).unwrap_or(rust_decimal::Decimal::new(23, 0));
+            let tax_pct = rust_decimal::Decimal::from_str(&tax_rate_s)
+                .unwrap_or(rust_decimal::Decimal::new(23, 0));
             let line_tax = (line_net * tax_pct / rust_decimal::Decimal::new(100, 0)).round_dp(2);
             let line_gross = (line_net + line_tax).round_dp(2);
 
@@ -114,7 +124,23 @@ pub async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice
                 line_net_total: Some(line_net.to_string()),
                 line_tax_total: Some(line_tax.to_string()),
                 line_gross_total: Some(line_gross.to_string()),
+                product_id: l.product_id,
             });
+        }
+
+        if save_new_customer {
+            let new_customer = crate::customer::NewCustomer {
+                company_id: issuer_company_id,
+                name: buyer_name.clone(),
+                nip: buyer_nip.clone(),
+                street: buyer_street.clone(),
+                city: buyer_city.clone(),
+                postal_code: buyer_postal_code.clone(),
+                country: buyer_country.clone(),
+                email: None,
+                phone: None,
+            };
+            let _ = crate::customer::create_customer(conn, new_customer);
         }
 
         let new_inv = invoice::NewInvoice {
@@ -146,6 +172,8 @@ pub async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice
             net_amount: Some(total_net.round_dp(2).to_string()),
             tax_amount: Some(total_tax.round_dp(2).to_string()),
             gross_amount: Some(total_gross.round_dp(2).to_string()),
+            warehouse_id,
+            status,
         };
 
         invoice::create_invoice(conn, new_inv, owned_lines).map_err(|e| e.to_string())
@@ -154,7 +182,9 @@ pub async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice
 }
 
 #[tauri::command]
-pub async fn cmd_get_invoice(id: i32) -> Result<(invoice::Invoice, Vec<invoice::InvoiceLine>), String> {
+pub async fn cmd_get_invoice(
+    id: i32,
+) -> Result<(invoice::Invoice, Vec<invoice::InvoiceLine>), String> {
     run_db_task(move |conn| invoice::fetch_invoice_by_id(conn, id).map_err(|e| e.to_string())).await
 }
 
@@ -169,8 +199,17 @@ pub async fn cmd_generate_invoice_xml(id: i32) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn cmd_update_invoice_number(payload: UpdateInvoiceNumberPayload) -> Result<invoice::Invoice, String> {
-    run_db_task(move |conn| invoice::update_invoice_number(conn, payload.invoice_id, payload.issuer_company_id, &payload.new_number).map_err(|e| e.to_string())).await
+pub async fn cmd_update_invoice_number(
+    payload: UpdateInvoiceNumberPayload,
+) -> Result<invoice::Invoice, String> {
+    run_db_task(move |conn| {
+        invoice::update_invoice_number(
+            conn,
+            payload.invoice_id,
+            payload.issuer_company_id,
+            &payload.new_number,
+        )
+        .map_err(|e| e.to_string())
+    })
+    .await
 }
-
-

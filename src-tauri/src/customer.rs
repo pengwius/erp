@@ -49,10 +49,7 @@ pub struct UpdateCustomer {
     pub updated_at: Option<String>,
 }
 
-pub fn create_customer(
-    conn: &mut SqliteConnection,
-    new_customer: NewCustomer,
-) -> Result<Customer> {
+pub fn create_customer(conn: &mut SqliteConnection, new_customer: NewCustomer) -> Result<Customer> {
     use crate::schema::customers::dsl::*;
 
     diesel::insert_into(customers)
@@ -78,10 +75,7 @@ pub fn update_customer(
         .with_context(|| format!("Failed to update customer {}", customer_id))
 }
 
-pub fn delete_customer(
-    conn: &mut SqliteConnection,
-    customer_id: i32,
-) -> Result<usize> {
+pub fn delete_customer(conn: &mut SqliteConnection, customer_id: i32) -> Result<usize> {
     use crate::schema::customers::dsl::*;
 
     diesel::delete(customers.find(customer_id))
@@ -89,10 +83,7 @@ pub fn delete_customer(
         .with_context(|| format!("Failed to delete customer {}", customer_id))
 }
 
-pub fn get_customer(
-    conn: &mut SqliteConnection,
-    customer_id: i32,
-) -> Result<Customer> {
+pub fn get_customer(conn: &mut SqliteConnection, customer_id: i32) -> Result<Customer> {
     use crate::schema::customers::dsl::*;
 
     customers
