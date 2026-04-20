@@ -201,7 +201,7 @@ export const InvoiceView: React.FC = () => {
           {/* Title */}
           <div className="text-center mb-12">
             <h1 className="text-3xl font-bold uppercase tracking-widest text-black">
-              FAKTURA VAT
+              {invoice.document_type === "receipt" ? "PARAGON" : "FAKTURA VAT"}
             </h1>
             <p className="text-xl mt-1 font-medium">
               NR {invoice.invoice_number}

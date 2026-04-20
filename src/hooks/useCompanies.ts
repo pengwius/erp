@@ -1,13 +1,37 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Company } from "../types/company";
 
+let globalActiveCompanyId: number | null = (() => {
+  const saved = sessionStorage.getItem("activeCompanyId");
+  return saved ? parseInt(saved, 10) : null;
+})();
+
+const listeners = new Set<() => void>();
+
+function setGlobalActiveCompanyId(id: number | null) {
+  globalActiveCompanyId = id;
+  if (id === null) {
+    sessionStorage.removeItem("activeCompanyId");
+  } else {
+    sessionStorage.setItem("activeCompanyId", id.toString());
+  }
+  listeners.forEach((listener) => listener());
+}
+
 export function useCompanies() {
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [activeCompanyId, setActiveCompanyId] = useState<number | null>(() => {
-    const saved = sessionStorage.getItem("activeCompanyId");
-    return saved ? parseInt(saved, 10) : null;
-  });
+  const [activeCompanyId, setActiveCompanyId] = useState<number | null>(
+    globalActiveCompanyId,
+  );
+
+  useEffect(() => {
+    const listener = () => setActiveCompanyId(globalActiveCompanyId);
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  }, []);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,16 +44,14 @@ export function useCompanies() {
       const list = await invoke<Company[]>("cmd_list_companies");
       setCompanies(list || []);
       if (list && list.length > 0) {
-        setActiveCompanyId((prev) => {
-          if (prev && !list.find((c) => c.id === prev)) {
-            sessionStorage.removeItem("activeCompanyId");
-            return null;
-          }
-          return prev;
-        });
+        if (
+          globalActiveCompanyId &&
+          !list.find((c) => c.id === globalActiveCompanyId)
+        ) {
+          setGlobalActiveCompanyId(null);
+        }
       } else {
-        setActiveCompanyId(null);
-        sessionStorage.removeItem("activeCompanyId");
+        setGlobalActiveCompanyId(null);
       }
       return list || [];
     } catch (e) {
@@ -71,8 +93,7 @@ export function useCompanies() {
   );
 
   const switchCompany = useCallback((id: number) => {
-    setActiveCompanyId(id);
-    sessionStorage.setItem("activeCompanyId", id.toString());
+    setGlobalActiveCompanyId(id);
   }, []);
 
   return {

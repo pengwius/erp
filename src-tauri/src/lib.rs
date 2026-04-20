@@ -36,6 +36,10 @@ where
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub mod settings;
+pub mod warehouse_document;
+pub mod warehouse_location;
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
@@ -87,6 +91,8 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::settings::cmd_get_setting,
+            commands::settings::cmd_set_setting,
             commands::company::cmd_has_companies,
             commands::company::cmd_create_company,
             commands::company::cmd_list_companies,
@@ -120,6 +126,7 @@ pub fn run() {
             commands::stock::cmd_create_stock_document,
             commands::stock::cmd_get_stocks,
             commands::stock::cmd_get_stock_documents,
+            commands::warehouse_location::cmd_get_warehouse_locations,
             commands::database::cmd_import_database,
         ])
         .run(tauri::generate_context!())

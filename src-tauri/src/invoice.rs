@@ -42,6 +42,7 @@ pub struct Invoice {
     pub gross_amount: Option<String>,
     pub warehouse_id: Option<i32>,
     pub status: String,
+    pub document_type: String,
     pub created_at: String,
     pub updated_at: Option<String>,
 }
@@ -79,12 +80,14 @@ pub struct NewInvoice {
     pub gross_amount: Option<String>,
     pub warehouse_id: Option<i32>,
     pub status: String,
+    pub document_type: String,
 }
 
 #[derive(Debug, Clone, AsChangeset)]
 #[diesel(table_name = invoices)]
 pub struct UpdateInvoice {
     pub invoice_number: Option<String>,
+    pub document_type: Option<String>,
     pub issue_date: Option<String>,
     pub sale_date: Option<Option<String>>,
     pub due_date: Option<Option<String>>,

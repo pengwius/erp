@@ -1,7 +1,7 @@
 import { Wrench } from "lucide-react";
 
 import { invoke } from "@tauri-apps/api/core";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SoftPrimaryButton from "../../components/PrimaryButton";
 import { Database, Loader2 } from "lucide-react";
 
@@ -9,10 +9,33 @@ import { SettingsPageHeader } from "../../components/settings/SettingsPageHeader
 import { useTranslation } from "react-i18next";
 
 export const AdvancedSettings = () => {
-  
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [autoWz, setAutoWz] = useState<boolean>(true);
+
+  useEffect(() => {
+    invoke<string | null>("cmd_get_setting", { key: "auto_wz" })
+      .then((res) => {
+        if (res !== null) {
+          setAutoWz(res === "true");
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  const handleAutoWzChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.checked;
+    setAutoWz(val);
+    try {
+      await invoke("cmd_set_setting", {
+        key: "auto_wz",
+        value: val ? "true" : "false",
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleImportSql = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,7 +60,6 @@ export const AdvancedSettings = () => {
     reader.readAsText(file);
   };
 
-
   return (
     <div className="animate-fade-in w-full max-w-5xl mx-auto py-4">
       <SettingsPageHeader
@@ -45,7 +67,26 @@ export const AdvancedSettings = () => {
         description={t("advanced.description")}
       />
 
-      
+      <div className="flex flex-col items-start justify-center p-6 border-2 border-border rounded-3xl bg-background/30 mb-8">
+        <h3 className="font-semibold text-lg mb-2">Workflow dokumentów</h3>
+        <label className="flex items-center space-x-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={autoWz}
+            onChange={handleAutoWzChange}
+            className="w-5 h-5"
+          />
+          <span className="text-sm font-medium">
+            Automatycznie generuj WZ do faktur (Tryb Szybki)
+          </span>
+        </label>
+        <p className="text-muted-foreground mt-2 text-sm">
+          Jeśli włączone, system od razu zdejmie stan z magazynu przy
+          wystawieniu dokumentu sprzedaży. Zalecane dla mniejszych firm, gdzie
+          faktura = wydanie towaru.
+        </p>
+      </div>
+
       <div className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-border rounded-3xl bg-background/30 mb-8">
         <div className="relative">
           <input
@@ -57,21 +98,31 @@ export const AdvancedSettings = () => {
           />
           <SoftPrimaryButton
             type="button"
-            icon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+            icon={
+              loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Database className="w-4 h-4" />
+              )
+            }
             iconPosition="left"
             disabled={loading}
           >
             {t("settings.import_database", "Import Database (.sql)")}
           </SoftPrimaryButton>
         </div>
-        {error && <p className="text-destructive mt-4 text-sm font-medium">{error}</p>}
+        {error && (
+          <p className="text-destructive mt-4 text-sm font-medium">{error}</p>
+        )}
         <p className="text-muted-foreground max-w-sm mt-4 text-sm">
-          {t("settings.import_database_desc", "This will run arbitrary SQL script. Use with caution.")}
+          {t(
+            "settings.import_database_desc",
+            "This will run arbitrary SQL script. Use with caution.",
+          )}
         </p>
       </div>
 
       <div className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-border rounded-3xl bg-background/30">
-
         <div
           className="p-4 rounded-2xl mb-4 flex items-center justify-center"
           style={{
