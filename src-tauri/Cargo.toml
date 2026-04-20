@@ -32,3 +32,6 @@ chrono = { version = "0.4.44", features = ["serde"] }
 libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
 invoice-gen = "0.0.5"
 rust_decimal = "1"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+xmltree = "0.12.0"

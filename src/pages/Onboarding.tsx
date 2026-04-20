@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Zap,
   Loader2,
+  Database,
   User,
 } from "lucide-react";
 
@@ -53,6 +54,31 @@ export const Onboarding: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  
+  const handleImportSql = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    setError(null);
+
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const text = ev.target?.result as string;
+      try {
+        await invoke("cmd_import_database", { sql: text });
+        navigate("/");
+        window.location.reload();
+      } catch (err: any) {
+        console.error(err);
+        setError("Import failed: " + err.toString());
+      } finally {
+        setLoading(false);
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const next = () => setStep((s) => Math.min(6, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
@@ -260,6 +286,7 @@ export const Onboarding: React.FC = () => {
                   {t("onboarding.get_started_desc")}
                 </p>
                 <div className="pt-8 flex flex-col sm:flex-row gap-4">
+                  
                   <SoftPrimaryButton
                     onClick={next}
                     icon={<ArrowRight className="w-4 h-4" />}
@@ -267,6 +294,26 @@ export const Onboarding: React.FC = () => {
                   >
                     {t("onboarding.start_setup")}
                   </SoftPrimaryButton>
+
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept=".sql"
+                      onChange={handleImportSql}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={loading}
+                    />
+                    <SoftPrimaryButton
+                      type="button"
+                      
+                      icon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+                      iconPosition="left"
+                      disabled={loading}
+                    >
+                      {t("onboarding.import_sql", "Import SQL")}
+                    </SoftPrimaryButton>
+                  </div>
+
                 </div>
               </div>
             )}

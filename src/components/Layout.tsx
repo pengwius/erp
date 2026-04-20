@@ -54,6 +54,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "./ui/dropdown-menu";
 
 const menuItems = [
@@ -258,39 +259,43 @@ export const Layout = () => {
                   align="end"
                   sideOffset={4}
                 >
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                      <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
-                          {operatorName}
-                        </span>
-                        <span className="truncate text-xs">{companyName}</span>
-                      </div>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {companies.map((company) => (
-                    <DropdownMenuItem
-                      key={company.id}
-                      onClick={() => switchCompany(company.id)}
-                      className="cursor-pointer"
-                    >
-                      <Building className="mr-2 h-4 w-4" />
-                      <div className="flex flex-col">
-                        <span>{company.short_name || company.name}</span>
-                        {company.nip && (
-                          <span className="text-xs text-muted-foreground">
-                            NIP: {company.nip}
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="p-0 font-normal">
+                      <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                        <Avatar className="h-8 w-8 rounded-lg">
+                          <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                          <span className="truncate font-semibold">
+                            {operatorName}
                           </span>
-                        )}
+                          <span className="truncate text-xs">
+                            {companyName}
+                          </span>
+                        </div>
                       </div>
-                    </DropdownMenuItem>
-                  ))}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {companies.map((company) => (
+                      <DropdownMenuItem
+                        key={company.id}
+                        onClick={() => switchCompany(company.id)}
+                        className="cursor-pointer"
+                      >
+                        <Building className="mr-2 h-4 w-4" />
+                        <div className="flex flex-col">
+                          <span>{company.short_name || company.name}</span>
+                          {company.nip && (
+                            <span className="text-xs text-muted-foreground">
+                              NIP: {company.nip}
+                            </span>
+                          )}
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate("/onboarding")}>
                     <Building className="mr-2 h-4 w-4" />
@@ -327,6 +332,46 @@ export const Layout = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button className="flex items-center gap-2 text-sm font-medium border px-3 py-1.5 rounded-md hover:bg-muted transition-colors focus:outline-none">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <span className="max-w-[150px] truncate">
+                      {companyName}
+                    </span>
+                  </button>
+                }
+              />
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>
+                    {t("common.switch_company", "Switch company")}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {companies.map((company) => (
+                    <DropdownMenuItem
+                      key={company.id}
+                      onClick={() => switchCompany(company.id)}
+                      className="cursor-pointer"
+                    >
+                      <Building className="mr-2 h-4 w-4" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {company.short_name || company.name}
+                        </span>
+                        {company.nip && (
+                          <span className="text-xs text-muted-foreground">
+                            NIP: {company.nip}
+                          </span>
+                        )}
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <div className="relative hidden md:block">
               <input
                 type="text"

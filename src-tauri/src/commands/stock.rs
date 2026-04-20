@@ -28,9 +28,9 @@ pub async fn cmd_create_stock_document(
     payload: CreateStockDocumentPayload,
 ) -> Result<(StockDocument, Vec<StockDocumentLine>), String> {
     run_db_task(move |conn| {
-        let created_at = payload.created_at.unwrap_or_else(|| {
-            chrono::Utc::now().to_rfc3339()
-        });
+        let created_at = payload
+            .created_at
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
         let new_doc = NewStockDocument {
             company_id: payload.company_id,
@@ -60,8 +60,10 @@ pub async fn cmd_create_stock_document(
 
 #[tauri::command]
 pub async fn cmd_get_stocks(company_id: i32, warehouse_id: i32) -> Result<Vec<Stock>, String> {
-    run_db_task(move |conn| stock::get_stocks(conn, company_id, warehouse_id).map_err(|e| e.to_string()))
-        .await
+    run_db_task(move |conn| {
+        stock::get_stocks(conn, company_id, warehouse_id).map_err(|e| e.to_string())
+    })
+    .await
 }
 
 #[tauri::command]

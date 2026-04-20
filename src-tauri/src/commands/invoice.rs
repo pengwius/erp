@@ -8,6 +8,7 @@ pub struct CreateInvoiceLinePayload {
     pub quantity: Option<String>,
     pub net_price: Option<String>,
     pub tax_rate: Option<String>,
+    pub product_id: Option<i32>,
 }
 
 #[derive(serde::Deserialize)]
@@ -38,6 +39,10 @@ pub struct CreateInvoicePayload {
     pub buyer_city: Option<String>,
     pub buyer_postal_code: Option<String>,
     pub lines: Vec<CreateInvoiceLinePayload>,
+    pub warehouse_id: Option<i32>,
+    pub status: String,
+    pub save_new_customer: bool,
+    pub document_type: String,
 }
 
 #[derive(serde::Deserialize)]
@@ -78,6 +83,10 @@ pub async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice
             buyer_city,
             buyer_postal_code,
             lines,
+            warehouse_id,
+            status,
+            save_new_customer,
+            document_type,
         } = payload;
 
         let mut owned_lines: Vec<invoice::NewInvoiceLine> = Vec::with_capacity(lines.len());
@@ -92,10 +101,13 @@ pub async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice
             let net_price_s = l.net_price.unwrap_or_else(|| "0".to_string());
             let tax_rate_s = l.tax_rate.unwrap_or_else(|| "23".to_string());
 
-            let qty = rust_decimal::Decimal::from_str(&quantity_s).unwrap_or(rust_decimal::Decimal::new(1, 0));
-            let net_p = rust_decimal::Decimal::from_str(&net_price_s).unwrap_or(rust_decimal::Decimal::new(0, 2));
+            let qty = rust_decimal::Decimal::from_str(&quantity_s)
+                .unwrap_or(rust_decimal::Decimal::new(1, 0));
+            let net_p = rust_decimal::Decimal::from_str(&net_price_s)
+                .unwrap_or(rust_decimal::Decimal::new(0, 2));
             let line_net = (qty * net_p).round_dp(2);
-            let tax_pct = rust_decimal::Decimal::from_str(&tax_rate_s).unwrap_or(rust_decimal::Decimal::new(23, 0));
+            let tax_pct = rust_decimal::Decimal::from_str(&tax_rate_s)
+                .unwrap_or(rust_decimal::Decimal::new(23, 0));
             let line_tax = (line_net * tax_pct / rust_decimal::Decimal::new(100, 0)).round_dp(2);
             let line_gross = (line_net + line_tax).round_dp(2);
 
@@ -114,10 +126,29 @@ pub async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice
                 line_net_total: Some(line_net.to_string()),
                 line_tax_total: Some(line_tax.to_string()),
                 line_gross_total: Some(line_gross.to_string()),
+                product_id: l.product_id,
             });
         }
 
+        if save_new_customer {
+            let new_customer = crate::customer::NewCustomer {
+                company_id: issuer_company_id,
+                name: buyer_name.clone(),
+                nip: buyer_nip.clone(),
+                street: buyer_street.clone(),
+                building_number: buyer_building_number.clone(),
+                flat_number: buyer_flat_number.clone(),
+                city: buyer_city.clone(),
+                postal_code: buyer_postal_code.clone(),
+                country: buyer_country.clone(),
+                email: None,
+                phone: None,
+            };
+            let _ = crate::customer::create_customer(conn, new_customer);
+        }
+
         let new_inv = invoice::NewInvoice {
+            document_type,
             issuer_company_id,
             seller_company_id,
             buyer_company_id,
@@ -146,15 +177,57 @@ pub async fn cmd_create_invoice(payload: CreateInvoicePayload) -> Result<invoice
             net_amount: Some(total_net.round_dp(2).to_string()),
             tax_amount: Some(total_tax.round_dp(2).to_string()),
             gross_amount: Some(total_gross.round_dp(2).to_string()),
+            warehouse_id,
+            status: status.clone(),
         };
 
-        invoice::create_invoice(conn, new_inv, owned_lines).map_err(|e| e.to_string())
+        let created_inv = invoice::create_invoice(conn, new_inv, owned_lines.clone()).map_err(|e| e.to_string())?;
+
+        let auto_wz = crate::settings::get_setting(conn, "auto_wz").unwrap_or(Some("true".to_string())) == Some("true".to_string());
+
+        if auto_wz && status == "issued" {
+            use diesel::prelude::*;
+            let new_wz = crate::warehouse_document::NewWarehouseDocument {
+                document_number: format!("WZ/{}", created_inv.invoice_number.replace("/", "-")),
+                document_type: "WZ".to_string(),
+                issue_date: created_inv.issue_date.clone(),
+                status: "issued".to_string(),
+                related_invoice_id: Some(created_inv.id),
+            };
+
+            if let Ok(inserted_wz) = diesel::insert_into(crate::schema::warehouse_documents::table)
+                .values(&new_wz)
+                .returning(crate::schema::warehouse_documents::id)
+                .get_result::<i32>(conn)
+            {
+                for line in owned_lines {
+                    let qty_str = line.quantity.unwrap_or_else(|| "1".to_string());
+                    let _ = diesel::insert_into(crate::schema::warehouse_document_lines::table)
+                        .values(&crate::warehouse_document::NewWarehouseDocumentLine {
+                            warehouse_document_id: inserted_wz,
+                            product_id: line.product_id,
+                            quantity: qty_str.clone(),
+                        })
+                        .execute(conn);
+
+                    if let (Some(w_id), Some(p_id)) = (warehouse_id, line.product_id) {
+                        if let Ok(qty_dec) = rust_decimal::Decimal::from_str(&qty_str) {
+                            let _ = crate::stock::update_or_insert_stock(conn, p_id, w_id, None, -qty_dec);
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(created_inv)
     })
     .await
 }
 
 #[tauri::command]
-pub async fn cmd_get_invoice(id: i32) -> Result<(invoice::Invoice, Vec<invoice::InvoiceLine>), String> {
+pub async fn cmd_get_invoice(
+    id: i32,
+) -> Result<(invoice::Invoice, Vec<invoice::InvoiceLine>), String> {
     run_db_task(move |conn| invoice::fetch_invoice_by_id(conn, id).map_err(|e| e.to_string())).await
 }
 
@@ -169,8 +242,17 @@ pub async fn cmd_generate_invoice_xml(id: i32) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn cmd_update_invoice_number(payload: UpdateInvoiceNumberPayload) -> Result<invoice::Invoice, String> {
-    run_db_task(move |conn| invoice::update_invoice_number(conn, payload.invoice_id, payload.issuer_company_id, &payload.new_number).map_err(|e| e.to_string())).await
+pub async fn cmd_update_invoice_number(
+    payload: UpdateInvoiceNumberPayload,
+) -> Result<invoice::Invoice, String> {
+    run_db_task(move |conn| {
+        invoice::update_invoice_number(
+            conn,
+            payload.invoice_id,
+            payload.issuer_company_id,
+            &payload.new_number,
+        )
+        .map_err(|e| e.to_string())
+    })
+    .await
 }
-
-

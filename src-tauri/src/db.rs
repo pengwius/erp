@@ -113,14 +113,14 @@ pub fn init_db(db_path: &str) -> Result<DbPool> {
 
 pub fn has_companies(conn: &mut SqliteConnection) -> Result<bool> {
     use crate::schema::companies::dsl::*;
-    let count: i64 = companies.count().get_result(conn).context("Failed to count companies")?;
+    let count: i64 = companies
+        .count()
+        .get_result(conn)
+        .context("Failed to count companies")?;
     Ok(count > 0)
 }
 
-pub fn create_company(
-    conn: &mut SqliteConnection,
-    new_company: NewCompany,
-) -> Result<Company> {
+pub fn create_company(conn: &mut SqliteConnection, new_company: NewCompany) -> Result<Company> {
     use crate::schema::companies::dsl::*;
 
     diesel::insert_into(companies)

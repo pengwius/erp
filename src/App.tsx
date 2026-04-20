@@ -6,6 +6,7 @@ import Customers from "./pages/Customers";
 import CustomerForm from "./pages/customers/CustomerForm";
 import { Dashboard } from "./pages/Dashboard";
 import { Invoices } from "./pages/Invoices";
+import { InvoiceView } from "./pages/InvoiceView";
 import Products from "./pages/Products";
 import ProductForm from "./pages/products/ProductForm";
 import ServiceProductForm from "./pages/products/service/ServiceProductForm";
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="invoices" element={<Invoices />} />
+              <Route path="invoices/:id" element={<InvoiceView />} />
               <Route path="customers">
                 <Route index element={<Customers />} />
                 <Route path="new" element={<CustomerForm />} />
