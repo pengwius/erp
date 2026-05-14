@@ -38,6 +38,17 @@ interface Stock {
   physical_quantity: string;
   reserved_quantity: string;
   available_quantity: string;
+  location_id: number | null;
+}
+
+interface WarehouseLocation {
+  id: number;
+  warehouse_id: number;
+  zone: string | null;
+  rack: string | null;
+  shelf: string | null;
+  bin: string | null;
+  barcode: string | null;
 }
 
 export default function Stocks() {
@@ -47,6 +58,7 @@ export default function Stocks() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [stocks, setStocks] = useState<Stock[]>([]);
+  const [locations, setLocations] = useState<WarehouseLocation[]>([]);
 
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     null,
@@ -96,19 +108,26 @@ export default function Stocks() {
   useEffect(() => {
     if (!selectedCompany || !selectedWarehouseId) {
       setStocks([]);
+      setLocations([]);
       return;
     }
 
     setIsLoadingStocks(true);
-    invoke<Stock[]>("cmd_get_stocks", {
-      companyId: selectedCompany,
-      warehouseId: selectedWarehouseId,
-    })
-      .then((data) => {
-        setStocks(data);
+    Promise.all([
+      invoke<Stock[]>("cmd_get_stocks", {
+        companyId: selectedCompany,
+        warehouseId: selectedWarehouseId,
+      }),
+      invoke<WarehouseLocation[]>("cmd_get_warehouse_locations", {
+        warehouseId: selectedWarehouseId,
+      }),
+    ])
+      .then(([fetchedStocks, fetchedLocations]) => {
+        setStocks(fetchedStocks);
+        setLocations(fetchedLocations);
       })
       .catch((err) => {
-        console.error("Failed to fetch stocks:", err);
+        console.error("Failed to fetch stocks or locations:", err);
       })
       .finally(() => {
         setIsLoadingStocks(false);
@@ -120,6 +139,20 @@ export default function Stocks() {
     products.forEach((p) => map.set(p.id, p.name));
     return map;
   }, [products]);
+
+  const getLocationString = (locId: number | null, locCode: string | null) => {
+    if (!locId) return locCode || "-";
+    const loc = locations.find((l) => l.id === locId);
+    if (!loc) return locCode || "-";
+
+    const parts = [];
+    if (loc.zone) parts.push(`${loc.zone}`);
+    if (loc.rack) parts.push(`Reg: ${loc.rack}`);
+    if (loc.shelf) parts.push(`Pół: ${loc.shelf}`);
+    if (loc.bin) parts.push(`Gn: ${loc.bin}`);
+
+    return parts.length > 0 ? parts.join(", ") : loc.barcode || locCode || "-";
+  };
 
   return (
     <div className="space-y-6">
@@ -201,16 +234,18 @@ export default function Stocks() {
                       <TableRow key={s.id}>
                         <TableCell className="font-medium">
                           {productMap.get(s.product_id) ||
-                            `Unknown (${s.product_id})`}
+                            `ID: ${s.product_id}`}
                         </TableCell>
-                        <TableCell>{s.location_code || "-"}</TableCell>
+                        <TableCell>
+                          {getLocationString(s.location_id, s.location_code)}
+                        </TableCell>
                         <TableCell className="text-right">
                           {s.physical_quantity}
                         </TableCell>
                         <TableCell className="text-right">
                           {s.reserved_quantity}
                         </TableCell>
-                        <TableCell className="text-right font-medium">
+                        <TableCell className="text-right">
                           {s.available_quantity}
                         </TableCell>
                       </TableRow>

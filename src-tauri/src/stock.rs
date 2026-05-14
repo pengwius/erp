@@ -1,9 +1,9 @@
 use diesel::prelude::*;
 use rust_decimal::Decimal;
-use std::str::FromStr;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
-use crate::schema::{stocks, stock_documents, stock_document_lines, products};
+use crate::schema::{products, stock_document_lines, stock_documents, stocks};
 
 #[derive(Queryable, Selectable, Identifiable, Serialize, Deserialize, Debug, Clone)]
 #[diesel(table_name = stocks)]
@@ -15,6 +15,7 @@ pub struct Stock {
     pub physical_quantity: String,
     pub reserved_quantity: String,
     pub available_quantity: String,
+    pub location_id: Option<i32>,
 }
 
 #[derive(Insertable, Debug, Clone)]
@@ -26,6 +27,7 @@ pub struct NewStock {
     pub physical_quantity: String,
     pub reserved_quantity: String,
     pub available_quantity: String,
+    pub location_id: Option<i32>,
 }
 
 #[derive(AsChangeset, Debug, Clone)]
@@ -110,20 +112,20 @@ pub fn create_stock_document(
             match new_doc.document_type.as_str() {
                 "PZ" => {
                     if let Some(target_wh) = new_doc.target_warehouse_id {
-                        update_or_insert_stock(conn, line.product_id, target_wh, qty)?;
+                        update_or_insert_stock(conn, line.product_id, target_wh, None, qty)?;
                     }
                 }
                 "WZ" => {
                     if let Some(source_wh) = new_doc.source_warehouse_id {
-                        update_or_insert_stock(conn, line.product_id, source_wh, -qty)?;
+                        update_or_insert_stock(conn, line.product_id, source_wh, None, -qty)?;
                     }
                 }
                 "MM" => {
                     if let Some(source_wh) = new_doc.source_warehouse_id {
-                        update_or_insert_stock(conn, line.product_id, source_wh, -qty)?;
+                        update_or_insert_stock(conn, line.product_id, source_wh, None, -qty)?;
                     }
                     if let Some(target_wh) = new_doc.target_warehouse_id {
-                        update_or_insert_stock(conn, line.product_id, target_wh, qty)?;
+                        update_or_insert_stock(conn, line.product_id, target_wh, None, qty)?;
                     }
                 }
                 _ => {}
@@ -134,17 +136,25 @@ pub fn create_stock_document(
     })
 }
 
-fn update_or_insert_stock(
+pub fn update_or_insert_stock(
     conn: &mut SqliteConnection,
     product_id_val: i32,
     warehouse_id_val: i32,
+    location_id_val: Option<i32>,
     qty_diff: Decimal,
 ) -> QueryResult<()> {
-    let existing_stock = stocks::table
+    let mut query = stocks::table
         .filter(stocks::product_id.eq(product_id_val))
         .filter(stocks::warehouse_id.eq(warehouse_id_val))
-        .first::<Stock>(conn)
-        .optional()?;
+        .into_boxed();
+
+    if let Some(loc_id) = location_id_val {
+        query = query.filter(stocks::location_id.eq(loc_id));
+    } else {
+        query = query.filter(stocks::location_id.is_null());
+    }
+
+    let existing_stock = query.first::<Stock>(conn).optional()?;
 
     if let Some(stock) = existing_stock {
         let phys_qty = Decimal::from_str(&stock.physical_quantity).unwrap_or(Decimal::ZERO);
@@ -169,6 +179,7 @@ fn update_or_insert_stock(
             physical_quantity: qty_diff.to_string(),
             reserved_quantity: "0".to_string(),
             available_quantity: qty_diff.to_string(),
+            location_id: location_id_val,
         };
 
         diesel::insert_into(stocks::table)

@@ -37,6 +37,8 @@ diesel::table! {
         name -> Text,
         nip -> Nullable<Text>,
         street -> Nullable<Text>,
+        building_number -> Nullable<Text>,
+        flat_number -> Nullable<Text>,
         city -> Nullable<Text>,
         postal_code -> Nullable<Text>,
         country -> Nullable<Text>,
@@ -78,6 +80,9 @@ diesel::table! {
         net_amount -> Nullable<Text>,
         tax_amount -> Nullable<Text>,
         gross_amount -> Nullable<Text>,
+        warehouse_id -> Nullable<Integer>,
+        status -> Text,
+        document_type -> Text,
         created_at -> Text,
         updated_at -> Nullable<Text>,
     }
@@ -96,6 +101,7 @@ diesel::table! {
         line_net_total -> Nullable<Text>,
         line_tax_total -> Nullable<Text>,
         line_gross_total -> Nullable<Text>,
+        product_id -> Nullable<Integer>,
     }
 }
 
@@ -184,6 +190,7 @@ diesel::table! {
         physical_quantity -> Text,
         reserved_quantity -> Text,
         available_quantity -> Text,
+        location_id -> Nullable<Integer>,
     }
 }
 
@@ -201,9 +208,51 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    settings (id) {
+        id -> Integer,
+        key -> Text,
+        value -> Text,
+    }
+}
+
+diesel::table! {
+    warehouse_document_lines (id) {
+        id -> Integer,
+        warehouse_document_id -> Integer,
+        product_id -> Nullable<Integer>,
+        quantity -> Text,
+    }
+}
+
+diesel::table! {
+    warehouse_documents (id) {
+        id -> Integer,
+        document_number -> Text,
+        document_type -> Text,
+        issue_date -> Text,
+        status -> Text,
+        related_invoice_id -> Nullable<Integer>,
+    }
+}
+
+diesel::table! {
+    warehouse_locations (id) {
+        id -> Integer,
+        warehouse_id -> Integer,
+        zone -> Nullable<Text>,
+        rack -> Nullable<Text>,
+        shelf -> Nullable<Text>,
+        bin -> Nullable<Text>,
+        barcode -> Nullable<Text>,
+    }
+}
+
 diesel::joinable!(customers -> companies (company_id));
 diesel::joinable!(invoices -> companies (issuer_company_id));
+diesel::joinable!(invoices -> warehouses (warehouse_id));
 diesel::joinable!(invoice_lines -> invoices (invoice_id));
+diesel::joinable!(invoice_lines -> products (product_id));
 diesel::joinable!(products -> companies (company_id));
 diesel::joinable!(product_prices -> products (product_id));
 diesel::joinable!(stock_document_lines -> products (product_id));
@@ -211,7 +260,12 @@ diesel::joinable!(stock_document_lines -> stock_documents (document_id));
 diesel::joinable!(stock_documents -> companies (company_id));
 diesel::joinable!(stocks -> products (product_id));
 diesel::joinable!(stocks -> warehouses (warehouse_id));
+diesel::joinable!(stocks -> warehouse_locations (location_id));
 diesel::joinable!(warehouses -> companies (company_id));
+diesel::joinable!(warehouse_document_lines -> products (product_id));
+diesel::joinable!(warehouse_document_lines -> warehouse_documents (warehouse_document_id));
+diesel::joinable!(warehouse_documents -> invoices (related_invoice_id));
+diesel::joinable!(warehouse_locations -> warehouses (warehouse_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     companies,
@@ -224,4 +278,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     stock_documents,
     stocks,
     warehouses,
+    settings,
+    warehouse_document_lines,
+    warehouse_documents,
+    warehouse_locations,
 );

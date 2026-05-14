@@ -1,5 +1,13 @@
 PRAGMA foreign_keys = ON;
 
+CREATE TABLE settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT NOT NULL UNIQUE,
+    value TEXT NOT NULL
+);
+
+INSERT INTO settings (key, value) VALUES ('auto_wz', 'true');
+
 CREATE TABLE companies (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
@@ -32,6 +40,8 @@ CREATE TABLE customers (
     name TEXT NOT NULL,
     nip TEXT,
     street TEXT,
+    building_number TEXT,
+    flat_number TEXT,
     city TEXT,
     postal_code TEXT,
     country TEXT,
@@ -41,52 +51,27 @@ CREATE TABLE customers (
     updated_at TEXT
 );
 
-CREATE TABLE invoices (
+CREATE TABLE warehouses (
     id INTEGER PRIMARY KEY NOT NULL,
-    issuer_company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-    seller_company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
-    buyer_company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
-    invoice_number TEXT NOT NULL,
-    invoice_type TEXT NOT NULL,
-    issue_date TEXT NOT NULL,
-    sale_date TEXT,
-    due_date TEXT,
-    currency TEXT NOT NULL,
-    seller_name TEXT NOT NULL,
-    seller_nip TEXT,
-    seller_country TEXT,
-    seller_street TEXT,
-    seller_building_number TEXT,
-    seller_flat_number TEXT,
-    seller_city TEXT,
-    seller_postal_code TEXT,
-    buyer_name TEXT NOT NULL,
-    buyer_nip TEXT,
-    buyer_country TEXT,
-    buyer_street TEXT,
-    buyer_building_number TEXT,
-    buyer_flat_number TEXT,
-    buyer_city TEXT,
-    buyer_postal_code TEXT,
-    net_amount TEXT,
-    tax_amount TEXT,
-    gross_amount TEXT,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT
+    company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    location_code_prefix TEXT,
+    description TEXT,
+    address TEXT,
+    manager_name TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE invoice_lines (
-    id INTEGER PRIMARY KEY NOT NULL,
-    invoice_id INTEGER NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
-    position INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    measure_unit TEXT,
-    quantity TEXT,
-    net_price TEXT,
-    tax_rate TEXT,
-    line_net_total TEXT,
-    line_tax_total TEXT,
-    line_gross_total TEXT
+CREATE TABLE warehouse_locations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    warehouse_id INTEGER NOT NULL,
+    zone TEXT,
+    rack TEXT,
+    shelf TEXT,
+    bin TEXT,
+    barcode TEXT UNIQUE,
+    FOREIGN KEY(warehouse_id) REFERENCES warehouses(id)
 );
 
 CREATE TABLE products (
@@ -138,22 +123,82 @@ CREATE TABLE product_prices (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE warehouses (
+CREATE TABLE invoices (
     id INTEGER PRIMARY KEY NOT NULL,
-    company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    issuer_company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    seller_company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
+    buyer_company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
+    invoice_number TEXT NOT NULL,
+    invoice_type TEXT NOT NULL,
+    document_type TEXT NOT NULL DEFAULT 'invoice',
+    issue_date TEXT NOT NULL,
+    sale_date TEXT,
+    due_date TEXT,
+    currency TEXT NOT NULL,
+    seller_name TEXT NOT NULL,
+    seller_nip TEXT,
+    seller_country TEXT,
+    seller_street TEXT,
+    seller_building_number TEXT,
+    seller_flat_number TEXT,
+    seller_city TEXT,
+    seller_postal_code TEXT,
+    buyer_name TEXT NOT NULL,
+    buyer_nip TEXT,
+    buyer_country TEXT,
+    buyer_street TEXT,
+    buyer_building_number TEXT,
+    buyer_flat_number TEXT,
+    buyer_city TEXT,
+    buyer_postal_code TEXT,
+    net_amount TEXT,
+    tax_amount TEXT,
+    gross_amount TEXT,
+    warehouse_id INTEGER REFERENCES warehouses(id) ON DELETE SET NULL,
+    status TEXT NOT NULL DEFAULT 'draft',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT
+);
+
+CREATE TABLE invoice_lines (
+    id INTEGER PRIMARY KEY NOT NULL,
+    invoice_id INTEGER NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    position INTEGER NOT NULL,
     name TEXT NOT NULL,
-    location_code_prefix TEXT,
-    description TEXT,
-    address TEXT,
-    manager_name TEXT,
-    is_active INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    measure_unit TEXT,
+    quantity TEXT,
+    net_price TEXT,
+    tax_rate TEXT,
+    line_net_total TEXT,
+    line_tax_total TEXT,
+    line_gross_total TEXT,
+    product_id INTEGER REFERENCES products(id) ON DELETE SET NULL
+);
+
+CREATE TABLE warehouse_documents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    document_number TEXT NOT NULL UNIQUE,
+    document_type TEXT NOT NULL, -- 'WZ', 'PZ', 'RW', 'PW'
+    issue_date TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'draft', -- 'draft', 'issued'
+    related_invoice_id INTEGER,
+    FOREIGN KEY(related_invoice_id) REFERENCES invoices(id)
+);
+
+CREATE TABLE warehouse_document_lines (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    warehouse_document_id INTEGER NOT NULL,
+    product_id INTEGER,
+    quantity TEXT NOT NULL,
+    FOREIGN KEY(warehouse_document_id) REFERENCES warehouse_documents(id),
+    FOREIGN KEY(product_id) REFERENCES products(id)
 );
 
 CREATE TABLE stocks (
     id INTEGER PRIMARY KEY NOT NULL,
     product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     warehouse_id INTEGER NOT NULL REFERENCES warehouses(id) ON DELETE CASCADE,
+    location_id INTEGER,
     location_code TEXT,
     physical_quantity TEXT NOT NULL DEFAULT '0',
     reserved_quantity TEXT NOT NULL DEFAULT '0',

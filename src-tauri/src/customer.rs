@@ -12,6 +12,8 @@ pub struct Customer {
     pub name: String,
     pub nip: Option<String>,
     pub street: Option<String>,
+    pub building_number: Option<String>,
+    pub flat_number: Option<String>,
     pub city: Option<String>,
     pub postal_code: Option<String>,
     pub country: Option<String>,
@@ -28,6 +30,8 @@ pub struct NewCustomer {
     pub name: String,
     pub nip: Option<String>,
     pub street: Option<String>,
+    pub building_number: Option<String>,
+    pub flat_number: Option<String>,
     pub city: Option<String>,
     pub postal_code: Option<String>,
     pub country: Option<String>,
@@ -41,6 +45,8 @@ pub struct UpdateCustomer {
     pub name: Option<String>,
     pub nip: Option<Option<String>>,
     pub street: Option<Option<String>>,
+    pub building_number: Option<Option<String>>,
+    pub flat_number: Option<Option<String>>,
     pub city: Option<Option<String>>,
     pub postal_code: Option<Option<String>>,
     pub country: Option<Option<String>>,
@@ -49,10 +55,7 @@ pub struct UpdateCustomer {
     pub updated_at: Option<String>,
 }
 
-pub fn create_customer(
-    conn: &mut SqliteConnection,
-    new_customer: NewCustomer,
-) -> Result<Customer> {
+pub fn create_customer(conn: &mut SqliteConnection, new_customer: NewCustomer) -> Result<Customer> {
     use crate::schema::customers::dsl::*;
 
     diesel::insert_into(customers)
@@ -78,10 +81,7 @@ pub fn update_customer(
         .with_context(|| format!("Failed to update customer {}", customer_id))
 }
 
-pub fn delete_customer(
-    conn: &mut SqliteConnection,
-    customer_id: i32,
-) -> Result<usize> {
+pub fn delete_customer(conn: &mut SqliteConnection, customer_id: i32) -> Result<usize> {
     use crate::schema::customers::dsl::*;
 
     diesel::delete(customers.find(customer_id))
@@ -89,10 +89,7 @@ pub fn delete_customer(
         .with_context(|| format!("Failed to delete customer {}", customer_id))
 }
 
-pub fn get_customer(
-    conn: &mut SqliteConnection,
-    customer_id: i32,
-) -> Result<Customer> {
+pub fn get_customer(conn: &mut SqliteConnection, customer_id: i32) -> Result<Customer> {
     use crate::schema::customers::dsl::*;
 
     customers

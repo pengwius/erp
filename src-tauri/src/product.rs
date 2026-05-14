@@ -228,7 +228,11 @@ pub fn list_products_for_company(
         .context("Failed to list products for company")
 }
 
-pub fn find_product_by_sku(conn: &mut SqliteConnection, company_id_val: i32, sku_val: &str) -> Result<Option<Product>> {
+pub fn find_product_by_sku(
+    conn: &mut SqliteConnection,
+    company_id_val: i32,
+    sku_val: &str,
+) -> Result<Option<Product>> {
     use crate::schema::products::dsl::*;
 
     products
@@ -239,7 +243,10 @@ pub fn find_product_by_sku(conn: &mut SqliteConnection, company_id_val: i32, sku
         .context("Failed to query product by sku")
 }
 
-pub fn create_product_price(conn: &mut SqliteConnection, new_price: NewProductPrice) -> Result<ProductPrice> {
+pub fn create_product_price(
+    conn: &mut SqliteConnection,
+    new_price: NewProductPrice,
+) -> Result<ProductPrice> {
     use crate::schema::product_prices::dsl::*;
 
     diesel::insert_into(product_prices)
@@ -249,7 +256,10 @@ pub fn create_product_price(conn: &mut SqliteConnection, new_price: NewProductPr
         .context("Failed to insert product price")
 }
 
-pub fn get_prices_for_product(conn: &mut SqliteConnection, product_id_val: i32) -> Result<Vec<ProductPrice>> {
+pub fn get_prices_for_product(
+    conn: &mut SqliteConnection,
+    product_id_val: i32,
+) -> Result<Vec<ProductPrice>> {
     use crate::schema::product_prices::dsl::*;
 
     product_prices
@@ -271,11 +281,7 @@ pub fn get_current_price(
         .filter(product_id.eq(product_id_val))
         .filter(currency.eq(currency_code))
         .filter(valid_from.le(at))
-        .filter(
-            valid_to
-                .is_null()
-                .or(valid_to.gt(at))
-        )
+        .filter(valid_to.is_null().or(valid_to.gt(at)))
         .order(valid_from.desc())
         .first(conn)
         .optional()
